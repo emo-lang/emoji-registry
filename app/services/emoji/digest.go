@@ -9,7 +9,7 @@ import (
 // Digest computes the SHA-256 content digest shared with the compiler: over
 // the given files sorted by path, each entry fed to the hash as
 // `path \x00 content \x00`. The hex-encoded digest is what clients write
-// into emo.lock.
+// into package.lock.
 func Digest(files map[string][]byte) string {
 	paths := make([]string, 0, len(files))
 	for path := range files {

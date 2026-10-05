@@ -16,7 +16,7 @@ this service is the missing server side.
 | `package.emo` manifest has a fixed schema of exactly 4 fields (`name`, `version`, `targets`, `deps`); old compilers reject unknown fields with E5100 | Metadata such as description, license, authors, README lives **only on the server**, returned via API — never written into the manifest |
 | Versions are exact semver (`major.minor.patch`, digits only); no version ranges; MVS (Minimal Version Selection) resolution happens client-side | The server only needs to serve a version list and per-version dependency data; no server-side dependency solver |
 | A package is a set of plain `.emo` source files and must contain `package.emo` | Publishing validation is simple: manifest must parse, `name`/`version` must match, sources only |
-| Checksums feed `emo.lock` and the content-addressed client cache (`name-version-checksum` directories) | The server must reproduce the exact client digest algorithm to validate publishes and to make lockfiles verifiable |
+| Checksums feed `package.lock` and the content-addressed client cache (`name-version-checksum` directories) | The server must reproduce the exact client digest algorithm to validate publishes and to make lockfiles verifiable |
 | `targets` field (`native`, `wasm`, `typescript`, `beam`, `riscv64`) | Version records carry target metadata; indexes can be filtered by target |
 | Scoped naming `owner/name`; top-level short names (`net`, `http`) reserved for the official stdlib | The ownership model is scope = account/organization; short names are gated by a server-side reserved list |
 | Registry endpoint configured via the `EMO_REGISTRY` env var; private registries are a first-class scenario | The protocol must be simple enough to self-host, and even to serve as a static file tree |
@@ -26,7 +26,7 @@ this service is the missing server side.
 The content digest is **SHA-256 over the sorted `(path, content)` pairs of all `.emo`
 files**, concatenated as `path \0 content \0` (the same construction as the compiler's
 `Registry.digest`, upgraded from MD5 to SHA-256 before any release ships). The same
-algorithm covers both the content digest (what goes into `emo.lock`) and the archive
+algorithm covers both the content digest (what goes into `package.lock`) and the archive
 integrity hash. There is no algorithm prefix and no MD5 compatibility path — the
 compiler-side change lands in the same window as this service.
 
@@ -192,7 +192,7 @@ GET /api/v1/packages/:owner/:name/versions
 ```
 
 - `checksum` — SHA-256 content digest over sorted `path\0content\0` of `.emo` files;
-  exactly what the client writes into `emo.lock`.
+  exactly what the client writes into `package.lock`.
 - `archive_sha256` — hash of the `.emoji` file itself; download integrity only.
 - `targets` — full list; filtering by build target is the client's job.
 - `yanked` — yanked versions **appear in the list with the flag set** rather than

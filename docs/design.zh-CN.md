@@ -14,7 +14,7 @@ Emo 编译器实现在同级仓库(`../emo`)。客户端包机制(manifest、解
 | `package.emo` manifest 严格固定 4 个字段(`name`、`version`、`targets`、`deps`);旧编译器对未知字段报 E5100 | 描述、license、作者、README 等元数据**只存服务端**,经 API 返回——绝不写进 manifest |
 | 版本只有精确 semver(`major.minor.patch`,纯数字),无版本范围;MVS(最小版本选择)解析在客户端完成 | 服务端只需提供版本列表和每版本依赖数据,不需要服务端依赖求解器 |
 | 包 = 纯 `.emo` 源码集合,必须含 `package.emo` | 发布校验简单:manifest 能解析、`name`/`version` 匹配、全是源码文件即可 |
-| checksum 写入 `emo.lock` 并用于客户端内容寻址缓存(`name-version-checksum` 目录) | 服务端必须复现完全一致的 digest 算法,以校验发布并让 lockfile 可验证 |
+| checksum 写入 `package.lock` 并用于客户端内容寻址缓存(`name-version-checksum` 目录) | 服务端必须复现完全一致的 digest 算法,以校验发布并让 lockfile 可验证 |
 | `targets` 字段(`native`、`wasm`、`typescript`、`beam`、`riscv64`) | 版本记录携带 target 元数据,索引可按 target 过滤 |
 | 作用域命名 `owner/name`;顶级短名(`net`、`http`)保留给官方 stdlib | 所有权模型 = scope 即账号/组织;短名由服务端保留名单硬控制 |
 | registry 端点由 `EMO_REGISTRY` 环境变量配置;私有 registry 是一等场景 | 协议必须简单到可自建,甚至可以作为静态文件树托管 |
@@ -23,7 +23,7 @@ Emo 编译器实现在同级仓库(`../emo`)。客户端包机制(manifest、解
 
 内容 digest = **对所有 `.emo` 文件按路径排序后的 `(路径, 内容)` 对做 SHA-256**,连接格式
 `path \0 content \0`(与编译器 `Registry.digest` 相同的构造方式,在任何版本发布之前
-从 MD5 升级为 SHA-256)。内容 digest(写进 `emo.lock` 的那个)与归档完整性哈希用同一
+从 MD5 升级为 SHA-256)。内容 digest(写进 `package.lock` 的那个)与归档完整性哈希用同一
 算法。没有算法前缀,没有 MD5 兼容路径——编译器侧的修改与本服务同窗口落地。
 
 ## 2. 包格式:`.emoji` 归档
@@ -171,7 +171,7 @@ GET /api/v1/packages/:owner/:name/versions
 ```
 
 - `checksum`——对排序后 `.emo` 文件的 `path\0content\0` 做 SHA-256 的内容 digest,
-  正是客户端写进 `emo.lock` 的值。
+  正是客户端写进 `package.lock` 的值。
 - `archive_sha256`——`.emoji` 文件本身的哈希,仅用于下载完整性校验。
 - `targets`——全量列表;按构建 target 过滤是客户端的事。
 - `yanked`——yanked 版本**出现在列表里并打标记**,而不是消失:lockfile 钉住
