@@ -103,7 +103,7 @@ pins a yanked version.
 ### API tokens
 
 Format `emo_<48 hex chars>`; only the SHA-256 hash is stored. Scopes: `push`, `yank`,
-`read` (private packages, later phase). Created and revoked from the web UI; optional
+`read` (private packages). Created and revoked from the web UI; optional
 per-package restriction and expiry.
 
 ## 5. Wire protocol
@@ -118,6 +118,22 @@ Errors share one shape:
 `code` is a stable machine-readable enum (`package_not_found`, `version_not_found`,
 `version_exists`, `invalid_manifest`, `checksum_mismatch`, `unauthorized`, `forbidden`,
 `name_reserved`); `message` is for humans only.
+
+### Private packages
+
+A package's `visibility` is `public` (default) or `private`, switchable by the owning
+scope via `PATCH /api/v1/packages/:owner/:name` or the package page. Every read surface
+— Protocol A, the version list, dependency queries, package metadata, archive downloads
+— requires authorization for private packages:
+
+- The package's owner account, any member of the owning organization, and API tokens
+  with the `read` scope belonging to those users may read. A `read` token reads every
+  private package its user may read; there is no per-package restriction.
+- Unauthorized requests get **exactly** the 404 `package_not_found` an unknown package
+  gets — never 401/403 — so private names cannot be probed. `dependencies` omits
+  unreadable packages, same as unknown ones.
+- Clients authenticate with `Authorization: Bearer <token>`; the Emo toolchain reads
+  the token from the `EMO_TOKEN` environment variable (new convention, additive only).
 
 ### Protocol A — bare-file compatibility layer
 
@@ -134,7 +150,18 @@ GET /:owner/:name/:version/<path>.emo       → individual source file
 Protocol A serves `.emo` sources only — it is the compiler's package channel, so
 `README.md` and `EMO-METADATA.json` are deliberately not exposed here.
 
-This layer is also trivially exportable as a static file tree for CDN hosting.
+This layer is also trivially exportable as a static file tree for CDN hosting:
+`registry:export <dir>` (default `./dist-registry`) renders every public package as
+
+```
+<dir>/<owner>/<name>/versions                     # byte-identical to the protocol A response
+<dir>/<owner>/<name>/<version>/<path>.emo         # sources, yanked versions excluded
+<dir>/downloads/<owner>--<name>--<version>.emoji  # archives, yanked included
+<dir>/index.html                                  # human index, not part of the protocol
+```
+
+Private packages are skipped (the count is logged). The export overwrites files in
+place and never deletes; clear the target directory first for an exact mirror.
 
 ### Protocol B — JSON API (contract for the future HTTPS client)
 
@@ -276,19 +303,21 @@ This keeps the manifest's 4-field purity and keeps `emo publish` trivial.
   yanked_at, user_id, storage_key)
 - `reserved_names` (name, reason) — the short-name reserved list, seeded at boot from
   the hardcoded stdlib list and extended by operators
-- `downloads` (version_id, date, count) — per-version per-day aggregate, written
-  synchronously on every download (the unique (version_id, date) index keeps rows
-  canonical; a lost read-modify-write race at worst undercounts)
+- `downloads` (version_id, date, count) — per-version per-day aggregate. With
+  `REDIS` configured, downloads are counted with INCR and flushed into this table
+  by a background flusher every minute; without Redis the write is synchronous.
 
 ## 7. Security and governance
 
 - Immutable versions + yank-does-not-delete → auditable supply chain.
-- Reserved short-name list enforced at registration.
+- Reserved short-name list enforced at registration; the DB-managed list is edited
+  by admins at `/admin/reserved` (the first admin is granted with
+  `admin:grant <username>`; the built-in stdlib list is compiled in and read-only).
 - Upload size limit (10 MB is generous for source-only packages); `.emo`-only file
   whitelist inside archives.
 - Rate limiting: per-token-user on publish (30/hour), per-IP on signup/login
-  (10/minute) and search (60/minute). In-process fixed windows; a Redis-backed
-  limiter is a phase 3 concern.
+  (10/minute) and search (60/minute). Counters live in Redis when `REDIS` is
+  configured, otherwise in-process fixed windows.
 - Only token hashes stored; passwords bcrypt.
 
 ## 8. Phased roadmap
@@ -297,6 +326,4 @@ This keeps the manifest's 4-field purity and keeps `emo publish` trivial.
    version lists, archive download, package detail web pages. The stock compiler can
    pull packages via Protocol A with `EMO_REGISTRY` pointed here.
 2. **Phase 2**: batch dependencies API hardening.
-3. **Phase 3**: static export to CDN, private packages with `read`-scoped tokens,
-   Redis-backed download aggregation and rate limiting,
-   `emo publish` / `emo search` CLI merged into the compiler repo.
+3. **Phase 3**: `emo publish` / `emo search` CLI merged into the compiler repo.

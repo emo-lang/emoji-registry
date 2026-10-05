@@ -16,7 +16,7 @@ import (
 
 // ShowPackageAction handles GET /api/v1/packages/:owner/:name (B.4).
 func ShowPackageAction(c *gin.Context) {
-	pkg, ok := loadPackageForRequest(c)
+	pkg, ok := loadReadablePackage(c)
 	if !ok {
 		return
 	}
@@ -50,9 +50,10 @@ func UpdatePackageAction(c *gin.Context) {
 		License     *string `json:"license"`
 		Homepage    *string `json:"homepage"`
 		Repository  *string `json:"repository"`
+		Visibility  *string `json:"visibility"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid_params", "expected a JSON object with description/license/homepage/repository")
+		respondError(c, http.StatusBadRequest, "invalid_params", "expected a JSON object with description/license/homepage/repository/visibility")
 		return
 	}
 
@@ -68,6 +69,14 @@ func UpdatePackageAction(c *gin.Context) {
 	}
 	if input.Repository != nil {
 		updates["repository"] = strings.TrimSpace(*input.Repository)
+	}
+	if input.Visibility != nil {
+		visibility := strings.TrimSpace(*input.Visibility)
+		if visibility != models.VisibilityPublic && visibility != models.VisibilityPrivate {
+			respondError(c, http.StatusUnprocessableEntity, "invalid_params", "visibility must be public or private")
+			return
+		}
+		updates["visibility"] = visibility
 	}
 
 	if err := repo.UpdateByID[models.Package](pkg.ID, updates); err != nil {

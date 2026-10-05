@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/emo-lang/emoji-registry/app/middlewares"
 )
 
 // DependenciesAction handles GET /api/v1/dependencies?packages=a/b,c/d (B.2).
@@ -29,7 +31,8 @@ func DependenciesAction(c *gin.Context) {
 			respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
 			return
 		}
-		if pkg == nil {
+		if pkg == nil || !middlewares.CanReadPackage(c, pkg) {
+			// Unknown and unreadable packages are both simply absent.
 			continue
 		}
 

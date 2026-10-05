@@ -1,0 +1,71 @@
+package admin
+
+import (
+	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// Reserved renders the reserved-names admin page: the database-managed list
+// with add/remove, and the read-only built-in stdlib list.
+templ Reserved(username string, adminFlag bool, rows []*models.ReservedName, builtin []string, err string) {
+	@layouts.Base("Admin — Reserved names", username, adminFlag) {
+		<main class="er-page">
+			<style>
+				.res-row { display: flex; gap: 14px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
+				.res-row .name { font-family: monospace; font-weight: 650; }
+				.res-row .meta { color: var(--er-muted); font-size: 13px; }
+				.res-row form { margin-left: auto; }
+				.builtin-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+				.builtin-grid .chip {
+					font-family: monospace; font-size: 13px; padding: 2px 10px;
+					border: 1px solid var(--er-line); border-radius: 999px; color: var(--er-muted);
+				}
+				.add-form { display: flex; gap: 10px; align-items: end; margin-top: 12px; }
+				.add-form .er-field { margin-bottom: 0; flex: 1; }
+			</style>
+			<h1>Reserved names</h1>
+			<p class="er-muted">
+				Reserved names cannot be registered as usernames, organizations or package scopes.
+				The built-in stdlib list is compiled in and cannot be changed at runtime.
+			</p>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<section class="pkg-section">
+				<h2>Managed</h2>
+				if len(rows) == 0 {
+					<p class="er-muted">No managed entries yet.</p>
+				}
+				for _, row := range rows {
+					<div class="res-row">
+						<span class="name">{ row.Name }</span>
+						<span class="meta">{ row.Reason }</span>
+						<span class="meta">{ row.CreatedAt.Format("2006-01-02") }</span>
+						<form method="post" action={ templ.SafeURL("/admin/reserved/" + idString(row.ID) + "/delete") }>
+							<button class="er-btn" type="submit">Delete</button>
+						</form>
+					</div>
+				}
+				<form class="add-form" method="post" action="/admin/reserved">
+					<div class="er-field">
+						<label for="name">Name</label>
+						<input class="er-input" id="name" name="name" required maxlength="64" pattern="[a-z0-9_\-]+"/>
+					</div>
+					<div class="er-field">
+						<label for="reason">Reason</label>
+						<input class="er-input" id="reason" name="reason" maxlength="255" placeholder="why reserved"/>
+					</div>
+					<button class="er-btn" type="submit">Reserve</button>
+				</form>
+			</section>
+			<section class="pkg-section" style="margin-top: 32px;">
+				<h2>Built-in (stdlib)</h2>
+				<div class="builtin-grid">
+					for _, name := range builtin {
+						<span class="chip">{ name }</span>
+					}
+				</div>
+			</section>
+		</main>
+	}
+}

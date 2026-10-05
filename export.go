@@ -12,6 +12,6 @@ import (
 // data-driven, so the static copy is exported with empty package lists.
 func init() {
 	cmd.SetStaticPages(
-		static.Page{Slug: "/", Component: home.Index("", nil, nil)},
+		static.Page{Slug: "/", Component: home.Index("", false, nil, nil)},
 	)
 }

@@ -1,6 +1,8 @@
 package emoji
 
 import (
+	"sort"
+
 	"github.com/daqing/airway/lib/repo"
 	"github.com/daqing/airway/lib/sql"
 
@@ -36,6 +38,17 @@ var reservedNames = map[string]bool{
 
 // ReservedSeedReason is stored on rows seeded from the hardcoded list.
 const ReservedSeedReason = "official stdlib"
+
+// BuiltinReservedNames returns the hardcoded stdlib list, sorted. The admin
+// UI shows these as read-only; they cannot be removed at runtime.
+func BuiltinReservedNames() []string {
+	names := make([]string, 0, len(reservedNames))
+	for name := range reservedNames {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
 
 // IsReserved reports whether name is reserved: the union of the hardcoded
 // stdlib list and the reserved_names table. When no database is set up (unit

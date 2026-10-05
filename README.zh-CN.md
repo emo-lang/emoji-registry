@@ -15,7 +15,9 @@ Emo 编译器所依赖的通信协议定义在
   SHA-256 哈希,按 `push`/`yank` scope 授权)
 - 组织(organizations):成员都能以组织 scope 发布、yank、改元信息;owner 管理成员。
   用户名与组织名共用一个命名空间
-- 短名保留名单存在 `reserved_names` 表(启动时从 stdlib 名单播种),另有硬编码兜底
+- 短名保留名单存在 `reserved_names` 表(启动时从 stdlib 名单播种),另有硬编码兜底;
+  管理员在 `/admin/reserved` 维护 DB 名单——第一个管理员用
+  `go run . admin:grant <username>` 授予
 - 发布:上传 `.emoji` 归档(gzip tar),服务端校验 manifest、计算与编译器一致的
   SHA-256 内容 digest、版本不可变、保留 stdlib 名字
 - Yank:软删除——被 yank 的版本从解析索引中移除,但归档仍可下载,不破坏
@@ -26,10 +28,19 @@ Emo 编译器所依赖的通信协议定义在
   发布/yank)
 - 归档下载 `/downloads/<owner>--<name>--<version>.emoji`,带 `Digest`/`ETag`
   完整性响应头
-- 下载统计:按版本按日的 `downloads` 聚合表随每次下载同步写入,包详情页有近 30 天
-  柱状图,元信息 API 返回 `downloads_last_30d`(Redis 聚合留待三期)
-- 限流:发布按 token 用户 30 次/小时,signup/login 按 IP 10 次/分钟,搜索 60 次/分钟
-  (进程内固定窗口)
+- 下载统计:按版本按日的 `downloads` 聚合表;配置了 `REDIS` 时先计数到 Redis、每分钟
+  批量落库(包详情页近 30 天柱状图,元信息 API 返回 `downloads_last_30d`)
+- 限流([airway-ratelimit-plugin](https://github.com/daqing/airway-ratelimit-plugin)):
+  发布按 token 用户 30 次/小时,signup/login 按 IP 10 次/分钟,搜索 60 次/分钟;
+  配置了 `REDIS` 时计数在 Redis,否则进程内
+- Redis 集成基于
+  [airway-redis-plugin](https://github.com/daqing/airway-redis-plugin)
+  (`REDIS` 环境变量、PING 验证、健康检查)
+- 私有包:按包设置 `visibility`(API PATCH 或包详情页);属主、组织成员及其
+  `read` scope token 可读——工具链用 `EMO_TOKEN` 认证;无权限请求得到与包不存在
+  完全相同的 404
+- 静态导出:`go run . registry:export <dir>` 把整个注册表(仅公开包)渲染为
+  协议 A 文件树加归档目录——nginx/CDN/S3 静态托管后把 `EMO_REGISTRY` 指过去即可
 - README 支持:归档可携带根部 `README.md`(不参与 digest),在包详情页渲染为
   消毒后的 HTML
 - Web UI:首页(最新发布/下载最多)、分页搜索、包详情页、注册登录、token 与组织管理

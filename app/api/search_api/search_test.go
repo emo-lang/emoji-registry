@@ -102,3 +102,23 @@ func TestSearchPaginates(t *testing.T) {
 		t.Fatalf("empty query should prompt for keywords")
 	}
 }
+
+func TestSearchNeverLeaksPrivatePackages(t *testing.T) {
+	r := setupTest(t)
+
+	if _, err := repo.CreateFrom[models.Package](sql.H{
+		"owner_scope": "alice", "name": "pkgsecret", "description": "hidden",
+		"license": "", "homepage": "", "repository": "", "user_id": 0,
+		"downloads": 0, "visibility": models.VisibilityPrivate,
+	}); err != nil {
+		t.Fatalf("seed private package: %v", err)
+	}
+
+	body := get(t, r, "/search?q=pkg")
+	if strings.Contains(body, "pkgsecret") {
+		t.Fatalf("private package leaked into search")
+	}
+	if !strings.Contains(body, "25 result(s)") {
+		t.Fatalf("private package must not count toward totals: %s", body)
+	}
+}

@@ -7,7 +7,7 @@ import (
 // Signup renders the registration form. err is non-empty when a previous
 // submission failed validation.
 templ Signup(err string, username string, email string) {
-	@layouts.Base("Sign up", "") {
+	@layouts.Base("Sign up", "", false) {
 		<main class="er-page" style="max-width: 420px;">
 			<h1>Create your account</h1>
 			if err != "" {
@@ -35,7 +35,7 @@ templ Signup(err string, username string, email string) {
 
 // Login renders the login form.
 templ Login(err string, email string) {
-	@layouts.Base("Log in", "") {
+	@layouts.Base("Log in", "", false) {
 		<main class="er-page" style="max-width: 420px;">
 			<h1>Log in</h1>
 			if err != "" {

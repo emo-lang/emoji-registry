@@ -19,7 +19,8 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
 - Organizations: members publish, yank and edit metadata under the org scope;
   owners manage members. Usernames and org names share one namespace
 - Reserved short names live in the `reserved_names` table (seeded from the
-  stdlib list at boot) plus a hardcoded fallback
+  stdlib list at boot) plus a hardcoded fallback; admins manage the DB list at
+  `/admin/reserved` — grant the first admin with `go run . admin:grant <username>`
 - Publishing: upload a `.emoji` archive (gzip tar), server-side manifest
   validation, SHA-256 content digest shared with the compiler, immutable
   versions, reserved stdlib names
@@ -32,11 +33,23 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   dependency queries, package metadata, publish/yank)
 - Archive downloads at `/downloads/<owner>--<name>--<version>.emoji` with
   `Digest` / `ETag` integrity headers
-- Download statistics: a per-version, per-day `downloads` aggregate written on
-  every download, a 30-day chart on the package page, and `downloads_last_30d`
-  in the metadata API (Redis-backed aggregation is a phase 3 item)
-- Rate limiting: publish 30/hour per token user, signup/login 10/minute and
-  search 60/minute per IP (in-process fixed windows)
+- Download statistics: a per-version, per-day `downloads` aggregate; with
+  `REDIS` configured, downloads are counted in Redis and flushed to the
+  database every minute (30-day chart on the package page, `downloads_last_30d`
+  in the metadata API)
+- Rate limiting ([airway-ratelimit-plugin](https://github.com/daqing/airway-ratelimit-plugin)):
+  publish 30/hour per token user, signup/login 10/minute and search 60/minute
+  per IP; Redis-backed when `REDIS` is set, in-process otherwise
+- Redis integration via
+  [airway-redis-plugin](https://github.com/daqing/airway-redis-plugin)
+  (`REDIS` env, PING-verified setup, health check)
+- Private packages: `visibility` per package (API PATCH or the package page);
+  readable by the owner, org members, and their `read`-scoped tokens — the
+  toolchain authenticates with `EMO_TOKEN`; unauthorized requests get the same
+  404 as unknown packages
+- Static export: `go run . registry:export <dir>` renders the whole registry
+  (public packages only) as a protocol A file tree plus archives — serve it
+  from nginx/CDN/S3 and point `EMO_REGISTRY` at it
 - README support: archives may ship a root `README.md` (never digested),
   rendered as sanitized HTML on the package page
 - Web UI: home page with recent and most-downloaded packages, paginated

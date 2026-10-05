@@ -13,6 +13,7 @@ import (
 	"github.com/daqing/airway/lib/storage"
 	"github.com/gin-gonic/gin"
 
+	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	"github.com/emo-lang/emoji-registry/app/services/stats"
@@ -30,6 +31,10 @@ func DownloadAction(c *gin.Context) {
 
 	pkg, err := repo.FindOneBy[models.Package](sql.H{"owner_scope": owner, "name": name})
 	if err != nil || pkg == nil {
+		respondError(c, http.StatusNotFound, "package_not_found", owner+"/"+name+" is not published")
+		return
+	}
+	if !middlewares.CanReadPackage(c, pkg) {
 		respondError(c, http.StatusNotFound, "package_not_found", owner+"/"+name+" is not published")
 		return
 	}
@@ -70,12 +75,7 @@ func DownloadAction(c *gin.Context) {
 		return
 	}
 
-	now := time.Now()
-	_ = repo.UpdateByID[models.Package](pkg.ID, sql.H{
-		"downloads":  pkg.Downloads + 1,
-		"updated_at": now,
-	})
-	_ = stats.Record(row.ID, now)
+	_ = stats.Record(pkg.ID, row.ID, time.Now())
 }
 
 // parseFileName splits <owner>--<name>--<version>.emoji into its parts.

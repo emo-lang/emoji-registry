@@ -33,10 +33,14 @@ func SearchAction(c *gin.Context) {
 
 	if q != "" {
 		needle := "%" + strings.ToLower(q) + "%"
-		cond := sql.AnyOf(
-			sql.Like("LOWER(owner_scope)", needle),
-			sql.Like("LOWER(name)", needle),
-			sql.Like("LOWER(description)", needle),
+		// Private packages never leak into search, regardless of the viewer.
+		cond := sql.AllOf(
+			sql.Eq("visibility", models.VisibilityPublic),
+			sql.AnyOf(
+				sql.Like("LOWER(owner_scope)", needle),
+				sql.Like("LOWER(name)", needle),
+				sql.Like("LOWER(description)", needle),
+			),
 		)
 
 		total, err = repo.Count(repo.CurrentDB(),
@@ -54,10 +58,10 @@ func SearchAction(c *gin.Context) {
 		}
 	}
 
-	username := ""
+	username, admin := "", false
 	if user := middlewares.CurrentUser(c); user != nil {
-		username = user.Username
+		username, admin = user.Username, user.Admin
 	}
 
-	render.HTML(c, search.Results(username, q, results, page, PerPage, total))
+	render.HTML(c, search.Results(username, admin, q, results, page, PerPage, total))
 }

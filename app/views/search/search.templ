@@ -10,8 +10,8 @@ import (
 
 // Results renders the search results page for query q with simple
 // prev/next pagination.
-templ Results(username string, q string, results []*models.Package, page int, perPage int, total int64) {
-	@layouts.Base("Search: "+q, username) {
+templ Results(username string, admin bool, q string, results []*models.Package, page int, perPage int, total int64) {
+	@layouts.Base("Search: "+q, username, admin) {
 		<main class="er-page">
 			@packages.CardStyles()
 			<style>

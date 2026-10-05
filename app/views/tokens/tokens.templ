@@ -11,8 +11,8 @@ import (
 )
 
 // Index renders the token list plus the create form.
-templ Index(username string, tokens []*models.APIToken, err string) {
-	@layouts.Base("API Tokens", username) {
+templ Index(username string, admin bool, tokens []*models.APIToken, err string) {
+	@layouts.Base("API Tokens", username, admin) {
 		<main class="er-page">
 			<style>
 				.token-row { display: flex; gap: 14px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
@@ -38,6 +38,7 @@ templ Index(username string, tokens []*models.APIToken, err string) {
 						<div class="scope-checks">
 							<label><input type="checkbox" name="scopes" value="push" checked/> push</label>
 							<label><input type="checkbox" name="scopes" value="yank"/> yank</label>
+							<label><input type="checkbox" name="scopes" value="read"/> read (private packages)</label>
 						</div>
 					</div>
 					<div class="er-field">
@@ -82,8 +83,8 @@ templ tokenRow(token *models.APIToken) {
 }
 
 // Created renders the one-time plaintext token after creation.
-templ Created(username string, name string, plain string) {
-	@layouts.Base("Token created", username) {
+templ Created(username string, admin bool, name string, plain string) {
+	@layouts.Base("Token created", username, admin) {
 		<main class="er-page" style="max-width: 560px;">
 			<h1>Token created</h1>
 			<p>Your new token <strong>{ name }</strong> is ready. Copy it now — <strong>it will never be shown again</strong>.</p>

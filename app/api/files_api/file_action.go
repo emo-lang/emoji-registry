@@ -11,6 +11,7 @@ import (
 	"github.com/daqing/airway/lib/storage"
 	"github.com/gin-gonic/gin"
 
+	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
 )
@@ -31,7 +32,7 @@ func VersionsAction(c *gin.Context) {
 		respondNotFound(c)
 		return
 	}
-	if pkg == nil {
+	if pkg == nil || !middlewares.CanReadPackage(c, pkg) {
 		respondNotFound(c)
 		return
 	}
@@ -81,7 +82,7 @@ func FileAction(c *gin.Context) {
 	}
 
 	pkg, err := repo.FindOneBy[models.Package](sql.H{"owner_scope": owner, "name": name})
-	if err != nil || pkg == nil {
+	if err != nil || pkg == nil || !middlewares.CanReadPackage(c, pkg) {
 		respondNotFound(c)
 		return
 	}

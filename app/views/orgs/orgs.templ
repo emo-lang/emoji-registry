@@ -8,8 +8,8 @@ import (
 )
 
 // Index lists the current user's organizations.
-templ Index(username string, organizations []*models.Organization, err string) {
-	@layouts.Base("My Organizations", username) {
+templ Index(username string, admin bool, organizations []*models.Organization, err string) {
+	@layouts.Base("My Organizations", username, admin) {
 		<main class="er-page">
 			<style>
 				.org-row { display: flex; gap: 14px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--er-line); }
@@ -38,8 +38,8 @@ templ Index(username string, organizations []*models.Organization, err string) {
 }
 
 // New renders the create-organization form.
-templ New(username string, err string, name string, displayName string) {
-	@layouts.Base("New Organization", username) {
+templ New(username string, admin bool, err string, name string, displayName string) {
+	@layouts.Base("New Organization", username, admin) {
 		<main class="er-page" style="max-width: 420px;">
 			<h1>New organization</h1>
 			<p class="er-muted">Organization names share the namespace with usernames: members publish packages under the organization's scope.</p>
@@ -63,8 +63,8 @@ templ New(username string, err string, name string, displayName string) {
 
 // Show renders the organization page: members, packages, and — for owners —
 // the member management forms.
-templ Show(username string, org *models.Organization, members []orgs.MemberView, pkgs []*models.Package, isOwner bool, err string) {
-	@layouts.Base(org.Name, username, org.DisplayName) {
+templ Show(username string, admin bool, org *models.Organization, members []orgs.MemberView, pkgs []*models.Package, isOwner bool, err string) {
+	@layouts.Base(org.Name, username, admin, org.DisplayName) {
 		<main class="er-page">
 			@packages.CardStyles()
 			<style>

@@ -15,25 +15,23 @@ import (
 // packages.
 func IndexAction(c *gin.Context) {
 	latest, err := repo.Find[models.Package](repo.CurrentDB(),
-		sql.All(models.Package{}).OrderBy("created_at DESC").Limit(10))
+		sql.All(models.Package{}).Where(sql.Eq("visibility", models.VisibilityPublic)).OrderBy("created_at DESC").Limit(10))
 	if err != nil {
 		render.Error(c, err)
 		return
 	}
 
 	top, err := repo.Find[models.Package](repo.CurrentDB(),
-		sql.All(models.Package{}).OrderBy("downloads DESC").Limit(10))
+		sql.All(models.Package{}).Where(sql.Eq("visibility", models.VisibilityPublic)).OrderBy("downloads DESC").Limit(10))
 	if err != nil {
 		render.Error(c, err)
 		return
 	}
 
-	render.HTML(c, home.Index(currentUsername(c), latest, top))
-}
-
-func currentUsername(c *gin.Context) string {
+	username, admin := "", false
 	if user := middlewares.CurrentUser(c); user != nil {
-		return user.Username
+		username, admin = user.Username, user.Admin
 	}
-	return ""
+
+	render.HTML(c, home.Index(username, admin, latest, top))
 }

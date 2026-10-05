@@ -45,12 +45,13 @@ func IndexAction(c *gin.Context) {
 		}
 	}
 
-	render.HTML(c, orgviews.Index(user.Username, organizations, ""))
+	render.HTML(c, orgviews.Index(user.Username, user.Admin, organizations, ""))
 }
 
 // NewOrgAction renders the create form.
 func NewOrgAction(c *gin.Context) {
-	render.HTML(c, orgviews.New(middlewares.CurrentUser(c).Username, "", "", ""))
+	user := middlewares.CurrentUser(c)
+	render.HTML(c, orgviews.New(user.Username, user.Admin, "", "", ""))
 }
 
 // CreateOrgWebAction processes the create form.
@@ -61,7 +62,7 @@ func CreateOrgWebAction(c *gin.Context) {
 	displayName := strings.TrimSpace(c.PostForm("display_name"))
 
 	fail := func(message string) {
-		render.HTMLStatus(c, http.StatusUnprocessableEntity, orgviews.New(user.Username, message, name, displayName))
+		render.HTMLStatus(c, http.StatusUnprocessableEntity, orgviews.New(user.Username, user.Admin, message, name, displayName))
 	}
 
 	if !emoji.ValidNamePart(name) {
@@ -87,9 +88,9 @@ func CreateOrgWebAction(c *gin.Context) {
 
 // ShowOrgPageAction renders the organization page.
 func ShowOrgPageAction(c *gin.Context) {
-	username := ""
+	username, admin := "", false
 	if user := middlewares.CurrentUser(c); user != nil {
-		username = user.Username
+		username, admin = user.Username, user.Admin
 	}
 
 	org, err := orgs.FindByName(c.Param("name"))
@@ -114,12 +115,21 @@ func ShowOrgPageAction(c *gin.Context) {
 		return
 	}
 
+	// Private packages on the org page are visible to members only.
+	viewer := middlewares.CurrentUser(c)
+	visible := pkgs[:0]
+	for _, pkg := range pkgs {
+		if !pkg.Private() || (viewer != nil && orgs.MembershipExists(org.ID, viewer.ID)) {
+			visible = append(visible, pkg)
+		}
+	}
+
 	isOwner := false
 	if user := middlewares.CurrentUser(c); user != nil {
 		isOwner = orgs.IsOwner(org.ID, user.ID)
 	}
 
-	render.HTML(c, orgviews.Show(username, org, members, pkgs, isOwner, ""))
+	render.HTML(c, orgviews.Show(username, admin, org, members, visible, isOwner, ""))
 }
 
 // AddMemberWebAction processes the add-member form (org owners only).
@@ -139,7 +149,7 @@ func AddMemberWebAction(c *gin.Context) {
 	fail := func(message string) {
 		members, _ := orgs.MemberViews(org.ID)
 		pkgs, _ := repo.FindBy[models.Package](sql.H{"owner_scope": org.Name})
-		render.HTMLStatus(c, http.StatusUnprocessableEntity, orgviews.Show(caller.Username, org, members, pkgs, true, message))
+		render.HTMLStatus(c, http.StatusUnprocessableEntity, orgviews.Show(caller.Username, caller.Admin, org, members, pkgs, true, message))
 	}
 
 	role := strings.TrimSpace(c.PostForm("role"))
@@ -286,5 +296,5 @@ func failShow(c *gin.Context, org *models.Organization, message string) {
 	user := middlewares.CurrentUser(c)
 	members, _ := orgs.MemberViews(org.ID)
 	pkgs, _ := repo.FindBy[models.Package](sql.H{"owner_scope": org.Name})
-	render.HTMLStatus(c, http.StatusUnprocessableEntity, orgviews.Show(user.Username, org, members, pkgs, true, message))
+	render.HTMLStatus(c, http.StatusUnprocessableEntity, orgviews.Show(user.Username, user.Admin, org, members, pkgs, true, message))
 }

@@ -8,7 +8,7 @@ import (
 
 // ListVersionsAction handles GET /api/v1/packages/:owner/:name/versions (B.1).
 func ListVersionsAction(c *gin.Context) {
-	pkg, ok := loadPackageForRequest(c)
+	pkg, ok := loadReadablePackage(c)
 	if !ok {
 		return
 	}

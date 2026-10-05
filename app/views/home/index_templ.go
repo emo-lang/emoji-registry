@@ -16,7 +16,7 @@ import (
 
 // Index renders the registry home page with the newest and most downloaded
 // packages.
-func Index(username string, latest []*models.Package, top []*models.Package) templ.Component {
+func Index(username string, admin bool, latest []*models.Package, top []*models.Package) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -95,7 +95,7 @@ func Index(username string, latest []*models.Package, top []*models.Package) tem
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base("Emo Registry", username, "The package registry for the Emo programming language.").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base("Emo Registry", username, admin, "The package registry for the Emo programming language.").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

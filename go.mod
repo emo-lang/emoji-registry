@@ -6,10 +6,13 @@ tool github.com/a-h/templ/cmd/templ
 
 require (
 	github.com/a-h/templ v0.3.1070
+	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/daqing/airway v0.19.1
 	github.com/daqing/airway-ratelimit-plugin v0.1.0
+	github.com/daqing/airway-redis-plugin v0.1.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/joho/godotenv v1.5.1
+	github.com/redis/go-redis/v9 v9.8.0
 	github.com/yuin/goldmark v1.6.0
 )
 
@@ -64,12 +67,12 @@ require (
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.59.0 // indirect
-	github.com/redis/go-redis/v9 v9.8.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/tinylib/msgp v1.6.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
@@ -88,3 +91,7 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.58.0 // indirect
 )
+
+// Points at the local checkout until a release carrying the Redis backend
+// (v0.2.0) is published; drop this line after upgrading.
+replace github.com/daqing/airway-ratelimit-plugin => ../../airway-project/airway-ratelimit-plugin

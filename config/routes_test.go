@@ -42,6 +42,7 @@ func TestRoutesRegistersCoreEndpoints(t *testing.T) {
 		"GET /:owner/:name/:version/*filepath",
 		"GET /search",
 		"GET /p/:owner/:name",
+		"POST /p/:owner/:name/visibility",
 		"GET /signup",
 		"POST /signup",
 		"GET /login",
@@ -61,6 +62,9 @@ func TestRoutesRegistersCoreEndpoints(t *testing.T) {
 		"GET /api/v1/orgs/:name",
 		"POST /api/v1/orgs/:name/members",
 		"DELETE /api/v1/orgs/:name/members/:username",
+		"GET /admin/reserved",
+		"POST /admin/reserved",
+		"POST /admin/reserved/:id/delete",
 	}
 
 	for _, route := range expected {

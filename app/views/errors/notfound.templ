@@ -6,7 +6,7 @@ import (
 
 // NotFound renders a friendly 404 page.
 templ NotFound(username string, message string) {
-	@layouts.Base("Not found", username) {
+	@layouts.Base("Not found", username, false) {
 		<main class="er-page">
 			<h1>404 — not found</h1>
 			<p class="er-muted">{ message }</p>

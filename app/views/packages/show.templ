@@ -13,14 +13,18 @@ import (
 // latest is the newest non-yanked version (nil when every version is yanked).
 // ownerIsOrg links the owner scope to its organization page. daily is the
 // last-30-days download series, oldest first. readme is the rendered README
-// of latest (nil when absent).
-templ Show(username string, pkg *models.Package, versions []*models.Version, latest *models.Version, latestDeps map[string]string, ownerIsOrg bool, daily []stats.DayCount, readme templ.Component) {
-	@layouts.Base(pkg.FullName(), username, pkg.Description) {
+// of latest (nil when absent). canManage shows the visibility form.
+templ Show(username string, admin bool, pkg *models.Package, versions []*models.Version, latest *models.Version, latestDeps map[string]string, ownerIsOrg bool, daily []stats.DayCount, readme templ.Component, canManage bool) {
+	@layouts.Base(pkg.FullName(), username, admin, pkg.Description) {
 		<main class="er-page">
 			<style>
 				.pkg-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
 				.pkg-head h1 { margin: 0; font-size: 32px; letter-spacing: -1px; }
 				.pkg-head .license { font-size: 13px; color: var(--er-muted); }
+				.private-badge {
+					font-size: 12px; font-weight: 650; padding: 2px 10px; border-radius: 999px;
+					border: 1px solid var(--er-accent); color: var(--er-accent);
+				}
 				.pkg-links { margin-top: 8px; font-size: 14px; display: flex; gap: 16px; }
 				.pkg-links a { color: var(--er-accent); }
 				.pkg-section { margin-top: 32px; }
@@ -35,11 +39,25 @@ templ Show(username string, pkg *models.Package, versions []*models.Version, lat
 			</style>
 			<div class="pkg-head">
 				<h1>{ pkg.FullName() }</h1>
+				if pkg.Private() {
+					<span class="private-badge">Private</span>
+				}
 				if pkg.License != "" {
 					<span class="license">{ pkg.License }</span>
 				}
 				<span class="license">{ strconv.FormatInt(pkg.Downloads, 10) } downloads</span>
 			</div>
+			if canManage {
+				<form method="post" action={ templ.SafeURL("/p/" + pkg.OwnerScope + "/" + pkg.Name + "/visibility") } style="margin-top: 8px;">
+					if pkg.Private() {
+						<input type="hidden" name="visibility" value="public"/>
+						<button class="er-btn" type="submit">Make public</button>
+					} else {
+						<input type="hidden" name="visibility" value="private"/>
+						<button class="er-btn" type="submit">Make private</button>
+					}
+				</form>
+			}
 			if pkg.Description != "" {
 				<p>{ pkg.Description }</p>
 			}

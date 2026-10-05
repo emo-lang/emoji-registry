@@ -4,20 +4,27 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
+	"time"
 
+	airwayredis "github.com/daqing/airway-redis-plugin"
 	"github.com/daqing/airway/app/websocket"
 	"github.com/daqing/airway/cmd"
 	"github.com/daqing/airway/lib/app"
 	"github.com/daqing/airway/lib/jsbuild"
 	"github.com/daqing/airway/lib/plugin"
-	"github.com/daqing/airway/lib/redis_client"
 	"github.com/daqing/airway/lib/repo"
+	"github.com/daqing/airway/lib/sql"
 	"github.com/daqing/airway/lib/storage"
 	"github.com/daqing/airway/lib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
+	"github.com/emo-lang/emoji-registry/app/middlewares"
+	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/export"
+	"github.com/emo-lang/emoji-registry/app/services/stats"
 	"github.com/emo-lang/emoji-registry/config"
 
 	// Registers the Go DSL migrations under db/migrate with
@@ -45,9 +52,96 @@ func main() {
 		return
 	}
 
+	// Project-local command: export the registry as a static protocol A file
+	// tree. Intercepted before the Airway CLI, following the --version
+	// precedent.
+	if args[0] == "registry:export" {
+		runRegistryExport(args[1:])
+		return
+	}
+
+	// `admin:grant <username>` promotes a user to admin. The first admin can
+	// only be created here — there is deliberately no UI for it.
+	if args[0] == "admin:grant" {
+		runAdminGrant(args[1:])
+		return
+	}
+
 	cmd.Version = versionString()
 	loadCLIEnv()
 	cmd.Run(args)
+}
+
+// runAdminGrant sets admin=true for the named user.
+func runAdminGrant(args []string) {
+	if len(args) == 0 || strings.TrimSpace(args[0]) == "" {
+		log.Println("usage: admin:grant <username>")
+		os.Exit(1)
+	}
+	username := strings.TrimSpace(args[0])
+
+	loadCLIEnv()
+
+	dsn := utils.GetEnvMulti("AIRWAY_DSN", "DSN")
+	if len(dsn) == 0 {
+		log.Println("DSN is not set")
+		os.Exit(1)
+	}
+	if _, err := repo.SetupDB(dsn); err != nil {
+		log.Printf("database setup failed: %v", err)
+		os.Exit(3)
+	}
+
+	user, err := repo.FindOneBy[models.User](sql.H{"username": username})
+	if err != nil {
+		log.Printf("lookup failed: %v", err)
+		os.Exit(8)
+	}
+	if user == nil {
+		log.Printf("no such user: %s", username)
+		os.Exit(8)
+	}
+
+	if err := repo.UpdateByID[models.User](user.ID, sql.H{"admin": true}); err != nil {
+		log.Printf("grant failed: %v", err)
+		os.Exit(8)
+	}
+
+	log.Printf("%s is now an admin", username)
+}
+
+// runRegistryExport wires the same infrastructure as the server (env, DB,
+// storage) and exports the registry into a directory.
+func runRegistryExport(args []string) {
+	dir := "./dist-registry"
+	if len(args) > 0 {
+		dir = args[0]
+	}
+
+	loadCLIEnv()
+
+	dsn := utils.GetEnvMulti("AIRWAY_DSN", "DSN")
+	if len(dsn) == 0 {
+		log.Println("DSN is not set")
+		os.Exit(1)
+	}
+	if _, err := repo.SetupDB(dsn); err != nil {
+		log.Printf("database setup failed: %v", err)
+		os.Exit(3)
+	}
+	if _, err := storage.Setup(storage.FromEnv()); err != nil {
+		log.Printf("storage setup failed: %v", err)
+		os.Exit(4)
+	}
+
+	stats, err := export.Run(dir)
+	if err != nil {
+		log.Printf("export failed: %v", err)
+		os.Exit(7)
+	}
+
+	log.Printf("exported %d packages (%d versions, %d source files, %d archives) to %s; skipped %d private packages",
+		stats.Packages, stats.Versions, stats.Files, stats.Archives, dir, stats.SkippedPrivate)
 }
 
 func runServer() {
@@ -86,10 +180,21 @@ func runServer() {
 		}
 	}
 
-	redisURL := utils.GetEnvMulti("AIRWAY_REDIS", "REDIS")
-	if len(redisURL) > 0 {
-		redis_client.Setup(redisURL)
+	// Redis is optional: when REDIS is configured and reachable, rate limiting
+	// switches to Redis-backed counters and download stats aggregate in Redis
+	// with a periodic flush to the database.
+	redisCfg := airwayredis.FromEnv()
+	if redisCfg.Enabled() {
+		if err := airwayredis.Setup(redisCfg); err != nil {
+			log.Printf("redis unavailable, falling back to in-process backends: %v", err)
+		}
 	}
+	if airwayredis.Current() != nil {
+		stats.Setup(airwayredis.Current())
+		go stats.StartFlusher(time.Minute)
+	}
+	log.Printf("rate limit backend: %s; download stats: %s",
+		middlewares.RateLimitBackendName(), stats.BackendName())
 
 	// In local development the frontend bundle is rebuilt in memory and
 	// served with livereload; production serves the embedded dist bundle.

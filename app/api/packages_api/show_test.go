@@ -14,11 +14,14 @@ import (
 
 	"github.com/daqing/airway/lib/migrate"
 	"github.com/daqing/airway/lib/repo"
+	"github.com/daqing/airway/lib/sql"
 	"github.com/daqing/airway/lib/storage"
 	"github.com/gin-gonic/gin"
 
 	"github.com/emo-lang/emoji-registry/app/api/accounts_api"
 	"github.com/emo-lang/emoji-registry/app/api/registry_api"
+	"github.com/emo-lang/emoji-registry/app/middlewares"
+	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	_ "github.com/emo-lang/emoji-registry/db/migrate"
 )
@@ -41,6 +44,8 @@ func setupTest(t *testing.T) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.New()
+	r.Use(middlewares.LoadSession())
+
 	v1 := r.Group("/api/v1")
 	accounts_api.Routes(v1)
 	registry_api.Routes(v1)
@@ -137,5 +142,47 @@ func TestPackagePageWithoutReadme(t *testing.T) {
 	}
 	if strings.Contains(w.Body.String(), "<h2>README</h2>") {
 		t.Fatalf("README section must be absent without a README")
+	}
+}
+
+func TestPrivatePackagePage(t *testing.T) {
+	r := setupTest(t)
+
+	publishWithReadme(t, r, nil)
+
+	pkg, err := repo.FindOneBy[models.Package](sql.H{"owner_scope": "alice", "name": "tools"})
+	if err != nil || pkg == nil {
+		t.Fatalf("find package: %v", err)
+	}
+	if err := repo.UpdateByID[models.Package](pkg.ID, sql.H{"visibility": models.VisibilityPrivate}); err != nil {
+		t.Fatalf("privatize: %v", err)
+	}
+
+	// Anonymous visitors get the 404 page.
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/p/alice/tools", nil))
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("anonymous: expected 404, got %d", w.Code)
+	}
+
+	// The owner with a web session sees the page, with the Private badge.
+	user, err := repo.FindOneBy[models.User](sql.H{"username": "alice"})
+	if err != nil || user == nil {
+		t.Fatalf("find user: %v", err)
+	}
+	session, err := middlewares.CreateSession(user)
+	if err != nil {
+		t.Fatalf("create session: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/p/alice/tools", nil)
+	req.AddCookie(&http.Cookie{Name: middlewares.SessionCookie, Value: session.Token})
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("owner: expected 200, got %d", w.Code)
+	}
+	if !strings.Contains(w.Body.String(), "Private") {
+		t.Fatalf("expected the Private badge")
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/emo-lang/emoji-registry/app/api/accounts_api"
+	"github.com/emo-lang/emoji-registry/app/api/admin_api"
 	"github.com/emo-lang/emoji-registry/app/api/auth_api"
 	"github.com/emo-lang/emoji-registry/app/api/downloads_api"
 	"github.com/emo-lang/emoji-registry/app/api/files_api"
@@ -47,6 +48,7 @@ func PublicRoutes(r *gin.Engine) {
 	r.GET("/", home_api.IndexAction)
 	r.GET("/search", middlewares.LimitSearch(), search_api.SearchAction)
 	r.GET("/p/:owner/:name", packages_api.ShowAction)
+	r.POST("/p/:owner/:name/visibility", middlewares.RequireWebAuth(), packages_api.SetVisibilityAction)
 
 	r.GET("/signup", auth_api.ShowSignupAction)
 	r.POST("/signup", middlewares.LimitAuthPage(), auth_api.SignupAction)
@@ -55,6 +57,7 @@ func PublicRoutes(r *gin.Engine) {
 	r.POST("/logout", auth_api.LogoutAction)
 
 	orgs_api.WebRoutes(r)
+	admin_api.Routes(r)
 
 	tokens := r.Group("/tokens", middlewares.RequireWebAuth())
 	{

@@ -16,7 +16,7 @@ import (
 )
 
 // Index lists the current user's organizations.
-func Index(username string, organizations []*models.Organization, err string) templ.Component {
+func Index(username string, admin bool, organizations []*models.Organization, err string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -139,7 +139,7 @@ func Index(username string, organizations []*models.Organization, err string) te
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base("My Organizations", username).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base("My Organizations", username, admin).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -148,7 +148,7 @@ func Index(username string, organizations []*models.Organization, err string) te
 }
 
 // New renders the create-organization form.
-func New(username string, err string, name string, displayName string) templ.Component {
+func New(username string, admin bool, err string, name string, displayName string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -236,7 +236,7 @@ func New(username string, err string, name string, displayName string) templ.Com
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base("New Organization", username).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base("New Organization", username, admin).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -246,7 +246,7 @@ func New(username string, err string, name string, displayName string) templ.Com
 
 // Show renders the organization page: members, packages, and — for owners —
 // the member management forms.
-func Show(username string, org *models.Organization, members []orgs.MemberView, pkgs []*models.Package, isOwner bool, err string) templ.Component {
+func Show(username string, admin bool, org *models.Organization, members []orgs.MemberView, pkgs []*models.Package, isOwner bool, err string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -470,7 +470,7 @@ func Show(username string, org *models.Organization, members []orgs.MemberView, 
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base(org.Name, username, org.DisplayName).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base(org.Name, username, admin, org.DisplayName).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

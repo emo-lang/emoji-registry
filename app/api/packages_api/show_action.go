@@ -27,9 +27,9 @@ import (
 
 // ShowAction handles GET /p/:owner/:name — the public package detail page.
 func ShowAction(c *gin.Context) {
-	username := ""
+	username, admin := "", false
 	if user := middlewares.CurrentUser(c); user != nil {
-		username = user.Username
+		username, admin = user.Username, user.Admin
 	}
 
 	owner := c.Param("owner")
@@ -49,7 +49,7 @@ func ShowAction(c *gin.Context) {
 		render.Error(c, err)
 		return
 	}
-	if pkg == nil {
+	if pkg == nil || !middlewares.CanReadPackage(c, pkg) {
 		notFound()
 		return
 	}
@@ -99,7 +99,12 @@ func ShowAction(c *gin.Context) {
 		readme = loadReadme(c, pkg, latest.Version)
 	}
 
-	render.HTML(c, packages.Show(username, pkg, versions, latest, latestDeps, ownerIsOrg, daily, readme))
+	canManage := false
+	if user := middlewares.CurrentUser(c); user != nil {
+		canManage = orgs.CanPublishAs(user, pkg.OwnerScope)
+	}
+
+	render.HTML(c, packages.Show(username, admin, pkg, versions, latest, latestDeps, ownerIsOrg, daily, readme, canManage))
 }
 
 // loadReadme fetches and renders the README.md stored next to the version's

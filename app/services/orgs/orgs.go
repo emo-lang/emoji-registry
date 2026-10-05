@@ -28,6 +28,12 @@ func IsOwner(orgID, userID sql.IdType) bool {
 	return err == nil && m != nil && m.Role == models.RoleOwner
 }
 
+// MembershipExists reports whether userID belongs to the organization at all.
+func MembershipExists(orgID, userID sql.IdType) bool {
+	m, err := MembershipOf(orgID, userID)
+	return err == nil && m != nil
+}
+
 // Members lists an organization's memberships, owners first.
 func Members(orgID sql.IdType) ([]*models.Membership, error) {
 	members, err := repo.FindBy[models.Membership](sql.H{"organization_id": orgID})

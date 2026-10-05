@@ -22,6 +22,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/api/accounts_api"
 	"github.com/emo-lang/emoji-registry/app/api/downloads_api"
 	"github.com/emo-lang/emoji-registry/app/api/files_api"
+	"github.com/emo-lang/emoji-registry/app/api/orgs_api"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	_ "github.com/emo-lang/emoji-registry/db/migrate"
 )
@@ -47,6 +48,7 @@ func setupTest(t *testing.T) *gin.Engine {
 	v1 := r.Group("/api/v1")
 	accounts_api.Routes(v1)
 	Routes(v1)
+	orgs_api.APIRoutes(v1)
 	downloads_api.Routes(r)
 	files_api.Routes(r)
 

@@ -89,7 +89,7 @@ lockfile 已钉住的项目不会断供。客户端在 lockfile 命中 yanked �
 ### API token
 
 格式 `emo_<48 位十六进制>`;只存 SHA-256 哈希。scope 分 `push`、`yank`、`read`
-(私有包,后期)。Web UI 创建/吊销,支持按包限定与过期时间。
+(私有包)。Web UI 创建/吊销,支持过期时间。
 
 ## 5. 通信协议
 
@@ -102,6 +102,19 @@ Base URL 即 `EMO_REGISTRY` 指向的地址。公开只读端点无需 token。�
 `code` 是稳定的机器可读枚举(`package_not_found`、`version_not_found`、
 `version_exists`、`invalid_manifest`、`checksum_mismatch`、`unauthorized`、
 `forbidden`、`name_reserved`);`message` 只给人看。
+
+### 私有包
+
+包的 `visibility` 为 `public`(默认)或 `private`,属主 scope 可通过
+`PATCH /api/v1/packages/:owner/:name` 或包详情页切换。私有包的所有读取入口——
+协议 A、版本列表、依赖查询、包元信息、归档下载——都需要授权:
+
+- 可读的人:包的属主账号、属主组织的任何成员,以及这些用户持有的带 `read`
+  scope 的 API token。`read` token 可读其用户有权读的所有私有包,不做按包限定。
+- 无权限的请求得到的 404 `package_not_found` 与包不存在时**完全一样**——绝不返回
+  401/403——私有包名无法被探测。`dependencies` 对不可读的包按不存在处理(缺席)。
+- 客户端用 `Authorization: Bearer <token>` 认证;Emo 工具链从 `EMO_TOKEN` 环境变量
+  读取 token(新增约定,只增不改)。
 
 ### 协议 A——裸文件兼容层
 
@@ -117,7 +130,18 @@ GET /:owner/:name/:version/<path>.emo       → 单个源文件
 协议 A 只提供 `.emo` 源文件——它是编译器的拉包通道,`README.md` 与
 `EMO-METADATA.json` 有意不在此暴露。
 
-这一层也可以原样导出为静态文件树扔到 CDN。
+这一层可以导出为静态文件树扔到 CDN:`registry:export <dir>`(缺省 `./dist-registry`)
+把所有公开包渲染为:
+
+```
+<dir>/<owner>/<name>/versions                     # 与协议 A 响应逐字节一致
+<dir>/<owner>/<name>/<version>/<path>.emo         # 源码,不含 yanked 版本
+<dir>/downloads/<owner>--<name>--<version>.emoji  # 归档,yanked 也导出
+<dir>/index.html                                  # 人肉索引页,不属于协议
+```
+
+私有包不导出(日志注明跳过数量)。导出覆盖写同名文件、绝不删文件;需要严格镜像时
+先自行清空目标目录。
 
 ### 协议 B——JSON API(未来 HTTPS 客户端的契约)
 
@@ -254,16 +278,17 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
   yanked_at, user_id, storage_key)
 - `reserved_names`(name, reason)——短名保留名单,启动时从硬编码 stdlib 名单播种,
   运营可扩充
-- `downloads`(version_id, date, count)——按版本按日的聚合表,每次下载同步写入
-  ((version_id, date) 唯一索引保证行唯一;读-改-写竞争最坏只是少计)
+- `downloads`(version_id, date, count)——按版本按日的聚合表。配置了 `REDIS` 时下载先
+  INCR 到 Redis,由后台 flusher 每分钟批量落库;无 Redis 时同步写库。
 
 ## 7. 安全与治理
 
 - 版本不可变 + yank 不删档 → 供应链可审计。
-- 短名保留名单在注册时强制。
+- 短名保留名单在注册时强制;DB 管理的部分由管理员在 `/admin/reserved` 维护
+  (第一个管理员用 `admin:grant <username>` 授予;内置 stdlib 名单编译期固定、只读)。
 - 上传大小限制(纯源码包 10MB 足够);归档内只允许 `.emo` 文件白名单。
 - 限流:发布按 token 用户(30 次/小时),signup/login 与搜索按 IP(10 次/分钟、
-  60 次/分钟)。进程内固定窗口;Redis 后端留待三期。
+  60 次/分钟)。配置了 `REDIS` 时计数器在 Redis,否则进程内固定窗口。
 - 只存 token 哈希;密码 bcrypt。
 
 ## 8. 分期路线
@@ -271,6 +296,4 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 1. **一期(可用闭环)**:账号 + token、publish/yank、协议 A 与 B 双全、版本列表、
    归档下载、Web 包详情页。官方编译器把 `EMO_REGISTRY` 指过来即可经协议 A 拉包。
 2. **二期**:批量 dependencies API 强化。
-3. **三期**:静态导出到 CDN、私有包与 `read` scope token、Redis 化的下载统计与限流、
-   `emo publish` / `emo search`
-   CLI 合入编译器仓库。
+3. **三期**:`emo publish` / `emo search` CLI 合入编译器仓库。

@@ -10,6 +10,7 @@ import (
 	"github.com/daqing/airway/lib/sql"
 	"github.com/gin-gonic/gin"
 
+	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	"github.com/emo-lang/emoji-registry/app/services/stats"
@@ -112,6 +113,23 @@ func loadPackageForRequest(c *gin.Context) (*models.Package, bool) {
 	}
 	if pkg == nil {
 		respondError(c, http.StatusNotFound, "package_not_found", owner+"/"+name+" is not published")
+		return nil, false
+	}
+
+	return pkg, true
+}
+
+// loadReadablePackage is loadPackageForRequest plus the private-package read
+// check: unauthorized requests get the same 404 as unknown packages, so
+// private names cannot be probed.
+func loadReadablePackage(c *gin.Context) (*models.Package, bool) {
+	pkg, ok := loadPackageForRequest(c)
+	if !ok {
+		return nil, false
+	}
+
+	if !middlewares.CanReadPackage(c, pkg) {
+		respondError(c, http.StatusNotFound, "package_not_found", pkg.FullName()+" is not published")
 		return nil, false
 	}
 

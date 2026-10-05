@@ -8,8 +8,8 @@ import (
 
 // Index renders the registry home page with the newest and most downloaded
 // packages.
-templ Index(username string, latest []*models.Package, top []*models.Package) {
-	@layouts.Base("Emo Registry", username, "The package registry for the Emo programming language.") {
+templ Index(username string, admin bool, latest []*models.Package, top []*models.Package) {
+	@layouts.Base("Emo Registry", username, admin, "The package registry for the Emo programming language.") {
 		<main class="er-page">
 			@packages.CardStyles()
 			<style>
