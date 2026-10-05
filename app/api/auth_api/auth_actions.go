@@ -13,6 +13,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/orgs"
 	"github.com/emo-lang/emoji-registry/app/views/auth"
 )
 
@@ -36,8 +37,11 @@ func SignupAction(c *gin.Context) {
 		fail("Username must be 1-64 characters of lowercase letters, digits, _ or -.")
 		return
 	}
-	if emoji.IsReserved(username) {
-		fail("Username " + username + " is reserved for the official stdlib.")
+	if reason, err := orgs.NameTakenReason(username); err != nil {
+		render.Error(c, err)
+		return
+	} else if reason != "" {
+		fail(reason + ".")
 		return
 	}
 	if !strings.Contains(email, "@") || len(email) > 255 {
@@ -46,14 +50,6 @@ func SignupAction(c *gin.Context) {
 	}
 	if len(password) < 8 {
 		fail("Password must be at least 8 characters.")
-		return
-	}
-
-	if exists, err := repo.ExistsWhere[models.User](sql.H{"username": username}); err != nil {
-		render.Error(c, err)
-		return
-	} else if exists {
-		fail("Username " + username + " is taken.")
 		return
 	}
 

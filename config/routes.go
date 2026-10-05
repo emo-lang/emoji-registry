@@ -15,6 +15,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/api/health_api"
 	"github.com/emo-lang/emoji-registry/app/api/home_api"
 	"github.com/emo-lang/emoji-registry/app/api/openapi_api"
+	"github.com/emo-lang/emoji-registry/app/api/orgs_api"
 	"github.com/emo-lang/emoji-registry/app/api/packages_api"
 	"github.com/emo-lang/emoji-registry/app/api/registry_api"
 	"github.com/emo-lang/emoji-registry/app/api/search_api"
@@ -44,14 +45,16 @@ func PublicRoutes(r *gin.Engine) {
 	r.Use(middlewares.LoadSession())
 
 	r.GET("/", home_api.IndexAction)
-	r.GET("/search", search_api.SearchAction)
+	r.GET("/search", middlewares.LimitSearch(), search_api.SearchAction)
 	r.GET("/p/:owner/:name", packages_api.ShowAction)
 
 	r.GET("/signup", auth_api.ShowSignupAction)
-	r.POST("/signup", auth_api.SignupAction)
+	r.POST("/signup", middlewares.LimitAuthPage(), auth_api.SignupAction)
 	r.GET("/login", auth_api.ShowLoginAction)
-	r.POST("/login", auth_api.LoginAction)
+	r.POST("/login", middlewares.LimitAuthPage(), auth_api.LoginAction)
 	r.POST("/logout", auth_api.LogoutAction)
+
+	orgs_api.WebRoutes(r)
 
 	tokens := r.Group("/tokens", middlewares.RequireWebAuth())
 	{
@@ -87,6 +90,7 @@ func apiGroupRoutes(r *gin.Engine) {
 		storage_api.Routes(v1)
 		registry_api.Routes(v1)
 		accounts_api.Routes(v1)
+		orgs_api.APIRoutes(v1)
 	}
 }
 

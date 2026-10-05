@@ -10,6 +10,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/orgs"
 )
 
 // YankAction handles DELETE /api/v1/packages/:owner/:name/versions/:version.
@@ -22,8 +23,8 @@ func YankAction(c *gin.Context) {
 		return
 	}
 
-	if pkg.UserID != user.ID {
-		respondError(c, http.StatusForbidden, "forbidden", "only the package owner can yank "+pkg.FullName())
+	if !orgs.CanPublishAs(user, pkg.OwnerScope) {
+		respondError(c, http.StatusForbidden, "forbidden", "only a member of the owning scope can yank "+pkg.FullName())
 		return
 	}
 

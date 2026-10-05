@@ -1,0 +1,135 @@
+package orgs
+
+import (
+	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/orgs"
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+	"github.com/emo-lang/emoji-registry/app/views/packages"
+)
+
+// Index lists the current user's organizations.
+templ Index(username string, organizations []*models.Organization, err string) {
+	@layouts.Base("My Organizations", username) {
+		<main class="er-page">
+			<style>
+				.org-row { display: flex; gap: 14px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--er-line); }
+				.org-row .name { font-weight: 650; }
+				.org-row a { color: var(--er-ink); text-decoration: none; }
+				.org-row a:hover { color: var(--er-accent); }
+			</style>
+			<h1>My organizations</h1>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			if len(organizations) == 0 {
+				<p class="er-muted">You are not a member of any organization yet.</p>
+			}
+			for _, org := range organizations {
+				<div class="org-row">
+					<a class="name" href={ templ.SafeURL("/orgs/" + org.Name) }>{ org.Name }</a>
+					if org.DisplayName != "" {
+						<span class="er-muted">{ org.DisplayName }</span>
+					}
+				</div>
+			}
+			<p style="margin-top: 20px;"><a class="er-btn" href="/orgs/new">New organization</a></p>
+		</main>
+	}
+}
+
+// New renders the create-organization form.
+templ New(username string, err string, name string, displayName string) {
+	@layouts.Base("New Organization", username) {
+		<main class="er-page" style="max-width: 420px;">
+			<h1>New organization</h1>
+			<p class="er-muted">Organization names share the namespace with usernames: members publish packages under the organization's scope.</p>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<form method="post" action="/orgs">
+				<div class="er-field">
+					<label for="name">Name</label>
+					<input class="er-input" id="name" name="name" value={ name } required maxlength="64" pattern="[a-z0-9_\-]+"/>
+				</div>
+				<div class="er-field">
+					<label for="display_name">Display name (optional)</label>
+					<input class="er-input" id="display_name" name="display_name" value={ displayName } maxlength="255"/>
+				</div>
+				<button class="er-btn" type="submit">Create organization</button>
+			</form>
+		</main>
+	}
+}
+
+// Show renders the organization page: members, packages, and — for owners —
+// the member management forms.
+templ Show(username string, org *models.Organization, members []orgs.MemberView, pkgs []*models.Package, isOwner bool, err string) {
+	@layouts.Base(org.Name, username, org.DisplayName) {
+		<main class="er-page">
+			@packages.CardStyles()
+			<style>
+				.member-row { display: flex; gap: 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
+				.member-row .role { color: var(--er-muted); font-size: 13px; }
+				.member-row form { margin-left: auto; display: flex; gap: 8px; }
+				.member-row button { font-size: 13px; padding: 3px 10px; }
+				.add-member { display: flex; gap: 10px; align-items: end; margin-top: 12px; }
+				.add-member .er-field { margin-bottom: 0; flex: 1; }
+			</style>
+			<h1>{ org.Name }</h1>
+			if org.DisplayName != "" {
+				<p class="er-muted">{ org.DisplayName }</p>
+			}
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<section class="pkg-section">
+				<h2>Members</h2>
+				for _, member := range members {
+					<div class="member-row">
+						<span>{ member.Username }</span>
+						<span class="role">{ member.Role }</span>
+						if isOwner {
+							<form method="post" action={ templ.SafeURL("/orgs/" + org.Name + "/members/" + member.Username + "/role") }>
+								if member.Role == "owner" {
+									<input type="hidden" name="role" value="member"/>
+									<button class="er-btn" type="submit">Make member</button>
+								} else {
+									<input type="hidden" name="role" value="owner"/>
+									<button class="er-btn" type="submit">Make owner</button>
+								}
+							</form>
+							<form method="post" action={ templ.SafeURL("/orgs/" + org.Name + "/members/" + member.Username + "/delete") }>
+								<button class="er-btn" type="submit">Remove</button>
+							</form>
+						}
+					</div>
+				}
+				if isOwner {
+					<form class="add-member" method="post" action={ templ.SafeURL("/orgs/" + org.Name + "/members") }>
+						<div class="er-field">
+							<label for="username">Add member</label>
+							<input class="er-input" id="username" name="username" placeholder="username" required/>
+						</div>
+						<div class="er-field">
+							<label for="role">Role</label>
+							<select class="er-input" id="role" name="role">
+								<option value="member" selected>member</option>
+								<option value="owner">owner</option>
+							</select>
+						</div>
+						<button class="er-btn" type="submit">Add</button>
+					</form>
+				}
+			</section>
+			<section class="pkg-section" style="margin-top: 32px;">
+				<h2>Packages</h2>
+				if len(pkgs) == 0 {
+					<p class="er-muted">No packages published under this scope yet.</p>
+				}
+				for _, pkg := range pkgs {
+					@packages.Card(pkg)
+				}
+			</section>
+		</main>
+	}
+}

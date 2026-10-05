@@ -12,6 +12,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/stats"
 )
 
 // respondError emits the shared error shape from docs/design.md section 5.
@@ -72,17 +73,28 @@ func latestVersion(versions []*models.Version) string {
 
 // packageObject renders the frozen B.4 package schema.
 func packageObject(pkg *models.Package, versions []*models.Version) gin.H {
+	versionIDs := make([]sql.IdType, 0, len(versions))
+	for _, v := range versions {
+		versionIDs = append(versionIDs, v.ID)
+	}
+
+	last30d, err := stats.SumSince(versionIDs, time.Now().AddDate(0, 0, -30).Format("2006-01-02"))
+	if err != nil {
+		last30d = 0
+	}
+
 	return gin.H{
-		"name":           pkg.FullName(),
-		"description":    pkg.Description,
-		"license":        pkg.License,
-		"homepage":       pkg.Homepage,
-		"repository":     pkg.Repository,
-		"downloads":      pkg.Downloads,
-		"owners":         []string{pkg.OwnerScope},
-		"latest_version": latestVersion(versions),
-		"created_at":     pkg.CreatedAt.UTC().Format(time.RFC3339),
-		"updated_at":     pkg.UpdatedAt.UTC().Format(time.RFC3339),
+		"name":               pkg.FullName(),
+		"description":        pkg.Description,
+		"license":            pkg.License,
+		"homepage":           pkg.Homepage,
+		"repository":         pkg.Repository,
+		"downloads":          pkg.Downloads,
+		"downloads_last_30d": last30d,
+		"owners":             []string{pkg.OwnerScope},
+		"latest_version":     latestVersion(versions),
+		"created_at":         pkg.CreatedAt.UTC().Format(time.RFC3339),
+		"updated_at":         pkg.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 

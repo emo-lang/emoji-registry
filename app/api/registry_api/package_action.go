@@ -11,6 +11,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/orgs"
 )
 
 // ShowPackageAction handles GET /api/v1/packages/:owner/:name (B.4).
@@ -39,8 +40,8 @@ func UpdatePackageAction(c *gin.Context) {
 		return
 	}
 
-	if pkg.UserID != user.ID {
-		respondError(c, http.StatusForbidden, "forbidden", "only the package owner can edit "+pkg.FullName())
+	if !orgs.CanPublishAs(user, pkg.OwnerScope) {
+		respondError(c, http.StatusForbidden, "forbidden", "only a member of the owning scope can edit "+pkg.FullName())
 		return
 	}
 

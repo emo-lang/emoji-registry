@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
+	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	"github.com/emo-lang/emoji-registry/config"
 
 	// Registers the Go DSL migrations under db/migrate with
@@ -74,6 +75,13 @@ func runServer() {
 	if len(dsn) > 0 {
 		if _, setupErr := repo.SetupDB(dsn); setupErr != nil {
 			log.Printf("database setup failed: %v", setupErr)
+			os.Exit(3)
+		}
+
+		// The reserved_names table is seeded from the hardcoded stdlib list;
+		// seeding is idempotent, so it runs on every boot.
+		if err := emoji.SeedReservedNames(); err != nil {
+			log.Printf("reserved names seed failed: %v", err)
 			os.Exit(3)
 		}
 	}

@@ -5,12 +5,16 @@ import (
 	"strings"
 
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/stats"
 	"github.com/emo-lang/emoji-registry/app/views/layouts"
 )
 
 // Show renders the package detail page. versions are ordered newest first;
 // latest is the newest non-yanked version (nil when every version is yanked).
-templ Show(username string, pkg *models.Package, versions []*models.Version, latest *models.Version, latestDeps map[string]string) {
+// ownerIsOrg links the owner scope to its organization page. daily is the
+// last-30-days download series, oldest first. readme is the rendered README
+// of latest (nil when absent).
+templ Show(username string, pkg *models.Package, versions []*models.Version, latest *models.Version, latestDeps map[string]string, ownerIsOrg bool, daily []stats.DayCount, readme templ.Component) {
 	@layouts.Base(pkg.FullName(), username, pkg.Description) {
 		<main class="er-page">
 			<style>
@@ -46,6 +50,14 @@ templ Show(username string, pkg *models.Package, versions []*models.Version, lat
 				if pkg.Repository != "" {
 					<a href={ templ.SafeURL(pkg.Repository) }>Repository</a>
 				}
+				<span class="er-muted">
+					Owner:
+					if ownerIsOrg {
+						<a href={ templ.SafeURL("/orgs/" + pkg.OwnerScope) }>{ pkg.OwnerScope }</a>
+					} else {
+						{ pkg.OwnerScope }
+					}
+				</span>
 			</div>
 			if latest != nil {
 				<section class="pkg-section">
@@ -70,6 +82,19 @@ templ Show(username string, pkg *models.Package, versions []*models.Version, lat
 				}
 			}
 			<section class="pkg-section">
+				<h2>Downloads</h2>
+				<p class="er-muted">{ strconv.FormatInt(pkg.Downloads, 10) } total</p>
+				@downloadChart(daily)
+			</section>
+			if readme != nil {
+				<section class="pkg-section">
+					<h2>README</h2>
+					<div class="readme-body">
+						@readme
+					</div>
+				</section>
+			}
+			<section class="pkg-section">
 				<h2>Versions</h2>
 				for _, version := range versions {
 					@versionRow(pkg, version)
@@ -77,6 +102,41 @@ templ Show(username string, pkg *models.Package, versions []*models.Version, lat
 			</section>
 		</main>
 	}
+}
+
+// downloadChart renders the last-30-days series as pure-CSS bars.
+templ downloadChart(daily []stats.DayCount) {
+	<style>
+		.dl-chart { display: flex; align-items: flex-end; gap: 2px; height: 64px; margin-top: 8px; }
+		.dl-chart .bar { flex: 1; background: var(--er-accent); min-height: 1px; opacity: .75; border-radius: 1px; }
+		.dl-chart .bar:hover { opacity: 1; }
+	</style>
+	<div class="dl-chart">
+		for _, day := range daily {
+			<div class="bar" style={ barHeight(day.Count, maxCount(daily)) } title={ day.Date + ": " + strconv.FormatInt(day.Count, 10) }></div>
+		}
+	</div>
+}
+
+func maxCount(daily []stats.DayCount) int64 {
+	var max int64
+	for _, day := range daily {
+		if day.Count > max {
+			max = day.Count
+		}
+	}
+	return max
+}
+
+func barHeight(count, max int64) string {
+	if max == 0 || count == 0 {
+		return "height: 1px"
+	}
+	pct := count * 100 / max
+	if pct < 3 {
+		pct = 3
+	}
+	return "height: " + strconv.FormatInt(pct, 10) + "%"
 }
 
 templ versionRow(pkg *models.Package, version *models.Version) {

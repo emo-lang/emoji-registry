@@ -50,6 +50,17 @@ func TestRoutesRegistersCoreEndpoints(t *testing.T) {
 		"GET /tokens",
 		"POST /tokens",
 		"POST /tokens/:id/delete",
+		"GET /orgs",
+		"GET /orgs/new",
+		"POST /orgs",
+		"GET /orgs/:name",
+		"POST /orgs/:name/members",
+		"POST /orgs/:name/members/:username/delete",
+		"POST /orgs/:name/members/:username/role",
+		"POST /api/v1/orgs",
+		"GET /api/v1/orgs/:name",
+		"POST /api/v1/orgs/:name/members",
+		"DELETE /api/v1/orgs/:name/members/:username",
 	}
 
 	for _, route := range expected {

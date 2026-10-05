@@ -13,6 +13,9 @@ Emo 编译器所依赖的通信协议定义在
 
 - 账号体系:bcrypt 密码、Web session、API token(`emo_<48 hex>`,库里只存
   SHA-256 哈希,按 `push`/`yank` scope 授权)
+- 组织(organizations):成员都能以组织 scope 发布、yank、改元信息;owner 管理成员。
+  用户名与组织名共用一个命名空间
+- 短名保留名单存在 `reserved_names` 表(启动时从 stdlib 名单播种),另有硬编码兜底
 - 发布:上传 `.emoji` 归档(gzip tar),服务端校验 manifest、计算与编译器一致的
   SHA-256 内容 digest、版本不可变、保留 stdlib 名字
 - Yank:软删除——被 yank 的版本从解析索引中移除,但归档仍可下载,不破坏
@@ -23,7 +26,13 @@ Emo 编译器所依赖的通信协议定义在
   发布/yank)
 - 归档下载 `/downloads/<owner>--<name>--<version>.emoji`,带 `Digest`/`ETag`
   完整性响应头
-- Web UI:首页(最新发布/下载最多)、搜索、包详情页、注册登录、token 管理
+- 下载统计:按版本按日的 `downloads` 聚合表随每次下载同步写入,包详情页有近 30 天
+  柱状图,元信息 API 返回 `downloads_last_30d`(Redis 聚合留待三期)
+- 限流:发布按 token 用户 30 次/小时,signup/login 按 IP 10 次/分钟,搜索 60 次/分钟
+  (进程内固定窗口)
+- README 支持:归档可携带根部 `README.md`(不参与 digest),在包详情页渲染为
+  消毒后的 HTML
+- Web UI:首页(最新发布/下载最多)、分页搜索、包详情页、注册登录、token 与组织管理
 
 ## 快速开始
 
@@ -110,12 +119,16 @@ emo deps resolve     # 走协议 A;指向任何自托管实例都能工作
 | `GET /api/v1/packages/:owner/:name/versions` | 无 | 版本列表,semver 升序(B.1) |
 | `GET /api/v1/dependencies?packages=a/b,c/d` | 无 | 批量依赖查询(B.2) |
 | `GET /downloads/:owner--:name--:version.emoji` | 无 | 归档下载(B.3) |
+| `POST /api/v1/orgs` | session 或 basic | 创建组织 |
+| `GET /api/v1/orgs/:name` | 无 | 组织信息 + 成员列表 |
+| `POST /api/v1/orgs/:name/members` | session 或 basic(组织 owner) | 加成员 |
+| `DELETE /api/v1/orgs/:name/members/:username` | session 或 basic(组织 owner) | 删成员(最后一个 owner 不可删) |
 | `GET /:owner/:name/versions` | 无 | 协议 A:版本 JSON 数组 |
 | `GET /:owner/:name/:version/package.emo` | 无 | 协议 A:manifest 原文 |
 | `GET /:owner/:name/:version/<path>.emo` | 无 | 协议 A:单个源文件 |
 
 Web 页面:`/`、`/search`、`/p/:owner/:name`、`/signup`、`/login`、
-`/tokens`(需登录)。
+`/tokens` 与 `/orgs`(需登录)。
 
 ## 开发
 

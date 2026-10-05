@@ -16,6 +16,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/orgs"
 )
 
 // maxUploadSize bounds the raw .emoji upload body; the uncompressed content
@@ -46,8 +47,8 @@ func PublishAction(c *gin.Context) {
 		respondError(c, http.StatusForbidden, "name_reserved", owner+" is reserved for the official stdlib")
 		return
 	}
-	if owner != user.Username {
-		respondError(c, http.StatusForbidden, "forbidden", "you can only publish under your own scope "+user.Username)
+	if !orgs.CanPublishAs(user, owner) {
+		respondError(c, http.StatusForbidden, "forbidden", "you cannot publish under the scope "+owner)
 		return
 	}
 
@@ -71,8 +72,8 @@ func PublishAction(c *gin.Context) {
 			respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
 			return
 		}
-	} else if pkg.UserID != user.ID {
-		respondError(c, http.StatusForbidden, "forbidden", "you do not own "+pkg.FullName())
+	} else if !orgs.CanPublishAs(user, pkg.OwnerScope) {
+		respondError(c, http.StatusForbidden, "forbidden", "you cannot publish to "+pkg.FullName())
 		return
 	}
 
@@ -144,6 +145,16 @@ func storeArchive(c *gin.Context, pkg *models.Package, version string, result *e
 			Reader:      bytes.NewReader(content),
 			Size:        int64(len(content)),
 			ContentType: "text/plain; charset=utf-8",
+		}); err != nil {
+			return err
+		}
+	}
+
+	if result.Readme != nil {
+		if err := store.Put(ctx, prefix+emoji.ReadmeFileName, storage.Object{
+			Reader:      bytes.NewReader(result.Readme),
+			Size:        int64(len(result.Readme)),
+			ContentType: "text/markdown; charset=utf-8",
 		}); err != nil {
 			return err
 		}

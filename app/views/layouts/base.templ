@@ -103,6 +103,7 @@ templ Base(title string, username string, description ...string) {
 				<nav>
 					if username != "" {
 						<span class="nav-user">{ username }</span>
+						<a href="/orgs">Orgs</a>
 						<a href="/tokens">Tokens</a>
 						<form class="inline" method="post" action="/logout">
 							<button type="submit">Logout</button>

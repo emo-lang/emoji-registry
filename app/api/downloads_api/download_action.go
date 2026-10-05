@@ -15,6 +15,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/stats"
 )
 
 // DownloadAction serves GET /downloads/<owner>--<name>--<version>.emoji.
@@ -69,10 +70,12 @@ func DownloadAction(c *gin.Context) {
 		return
 	}
 
+	now := time.Now()
 	_ = repo.UpdateByID[models.Package](pkg.ID, sql.H{
 		"downloads":  pkg.Downloads + 1,
-		"updated_at": time.Now(),
+		"updated_at": now,
 	})
+	_ = stats.Record(row.ID, now)
 }
 
 // parseFileName splits <owner>--<name>--<version>.emoji into its parts.

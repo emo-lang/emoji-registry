@@ -16,6 +16,10 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
 
 - Accounts with bcrypt passwords, web sessions, and API tokens
   (`emo_<48 hex>`, only the SHA-256 hash is stored, scoped `push`/`yank`)
+- Organizations: members publish, yank and edit metadata under the org scope;
+  owners manage members. Usernames and org names share one namespace
+- Reserved short names live in the `reserved_names` table (seeded from the
+  stdlib list at boot) plus a hardcoded fallback
 - Publishing: upload a `.emoji` archive (gzip tar), server-side manifest
   validation, SHA-256 content digest shared with the compiler, immutable
   versions, reserved stdlib names
@@ -28,8 +32,16 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   dependency queries, package metadata, publish/yank)
 - Archive downloads at `/downloads/<owner>--<name>--<version>.emoji` with
   `Digest` / `ETag` integrity headers
-- Web UI: home page with recent and most-downloaded packages, search,
-  package detail pages, signup/login, token management
+- Download statistics: a per-version, per-day `downloads` aggregate written on
+  every download, a 30-day chart on the package page, and `downloads_last_30d`
+  in the metadata API (Redis-backed aggregation is a phase 3 item)
+- Rate limiting: publish 30/hour per token user, signup/login 10/minute and
+  search 60/minute per IP (in-process fixed windows)
+- README support: archives may ship a root `README.md` (never digested),
+  rendered as sanitized HTML on the package page
+- Web UI: home page with recent and most-downloaded packages, paginated
+  search, package detail pages, signup/login, token and organization
+  management
 
 ## Quick start
 
@@ -117,12 +129,16 @@ real HTTP status. Full request/response schemas: docs/design.md §5.
 | `GET /api/v1/packages/:owner/:name/versions` | — | version list, ascending semver (B.1) |
 | `GET /api/v1/dependencies?packages=a/b,c/d` | — | batch dependency query (B.2) |
 | `GET /downloads/:owner--:name--:version.emoji` | — | archive download (B.3) |
+| `POST /api/v1/orgs` | session or basic | create an organization |
+| `GET /api/v1/orgs/:name` | — | organization info + members |
+| `POST /api/v1/orgs/:name/members` | session or basic (org owner) | add a member |
+| `DELETE /api/v1/orgs/:name/members/:username` | session or basic (org owner) | remove a member (last owner protected) |
 | `GET /:owner/:name/versions` | — | protocol A: JSON array of versions |
 | `GET /:owner/:name/:version/package.emo` | — | protocol A: manifest source |
 | `GET /:owner/:name/:version/<path>.emo` | — | protocol A: individual source file |
 
 Web pages: `/`, `/search`, `/p/:owner/:name`, `/signup`, `/login`,
-`/tokens` (login required).
+`/tokens` and `/orgs` (login required).
 
 ## Development
 

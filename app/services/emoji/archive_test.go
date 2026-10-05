@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -114,7 +115,7 @@ func TestValidate(t *testing.T) {
 
 	if err := Validate(map[string][]byte{
 		"package.emo": []byte("x"),
-		"README.md":   []byte("x"),
+		"notes.txt":   []byte("x"),
 	}); err == nil {
 		t.Fatalf("expected non-.emo file to be rejected")
 	}
@@ -124,6 +125,23 @@ func TestValidate(t *testing.T) {
 		"EMO-METADATA.json": []byte("{}"),
 	}); err != nil {
 		t.Fatalf("root EMO-METADATA.json should be allowed: %v", err)
+	}
+
+	if err := Validate(map[string][]byte{
+		"package.emo": []byte("x"),
+		"README.md":   []byte("# Hi"),
+	}); err != nil {
+		t.Fatalf("root README.md should be allowed: %v", err)
+	}
+
+	for name, files := range map[string]map[string][]byte{
+		"nested README":  {"package.emo": []byte("x"), "docs/README.md": []byte("x")},
+		"wrong case":     {"package.emo": []byte("x"), "README.MD": []byte("x")},
+		"other markdown": {"package.emo": []byte("x"), "CHANGELOG.md": []byte("x")},
+	} {
+		if err := Validate(files); err == nil {
+			t.Fatalf("expected %s to be rejected", name)
+		}
 	}
 
 	if err := Validate(map[string][]byte{
@@ -205,5 +223,65 @@ func TestProcessUploadRejectsInvalidManifest(t *testing.T) {
 
 	if _, err := ProcessUpload(archive); err == nil {
 		t.Fatalf("expected invalid manifest to be rejected")
+	}
+}
+
+func TestReadmeDoesNotAffectDigest(t *testing.T) {
+	sources := map[string][]byte{
+		"package.emo": []byte("package { name = \"a/b\" version = \"1.0.0\" }"),
+		"a.emo":       []byte("let a = 1"),
+	}
+
+	withReadme := make(map[string][]byte, len(sources)+1)
+	for name, content := range sources {
+		withReadme[name] = content
+	}
+	withReadme["README.md"] = []byte("# Package a/b\n\nHello.")
+
+	archiveWith, err := BuildArchive(withReadme)
+	if err != nil {
+		t.Fatalf("build: %v", err)
+	}
+	archiveWithout, err := BuildArchive(sources)
+	if err != nil {
+		t.Fatalf("build: %v", err)
+	}
+
+	resultWith, err := ProcessUpload(archiveWith)
+	if err != nil {
+		t.Fatalf("process with readme: %v", err)
+	}
+	resultWithout, err := ProcessUpload(archiveWithout)
+	if err != nil {
+		t.Fatalf("process without readme: %v", err)
+	}
+
+	if resultWith.Digest != resultWithout.Digest {
+		t.Fatalf("README.md must not change the digest")
+	}
+	if string(resultWith.Readme) != "# Package a/b\n\nHello." {
+		t.Fatalf("unexpected readme: %q", resultWith.Readme)
+	}
+	if resultWithout.Readme != nil {
+		t.Fatalf("expected nil readme")
+	}
+
+	// The stored archive keeps the README, and the metadata lists its hash.
+	stored, err := Unpack(resultWith.Archive)
+	if err != nil {
+		t.Fatalf("unpack stored: %v", err)
+	}
+	if _, ok := stored["README.md"]; !ok {
+		t.Fatalf("stored archive lost README.md")
+	}
+	var meta struct {
+		Files map[string]string `json:"files"`
+	}
+	raw, _ := stored[MetadataFileName]
+	if err := json.Unmarshal(raw, &meta); err != nil {
+		t.Fatalf("parse metadata: %v", err)
+	}
+	if meta.Files["README.md"] != SHA256Hex(withReadme["README.md"]) {
+		t.Fatalf("metadata missing README.md hash: %v", meta.Files)
 	}
 }

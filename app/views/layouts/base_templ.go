@@ -165,7 +165,7 @@ func Base(title string, username string, description ...string) templ.Component 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span> <a href=\"/tokens\">Tokens</a><form class=\"inline\" method=\"post\" action=\"/logout\"><button type=\"submit\">Logout</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span> <a href=\"/orgs\">Orgs</a> <a href=\"/tokens\">Tokens</a><form class=\"inline\" method=\"post\" action=\"/logout\"><button type=\"submit\">Logout</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

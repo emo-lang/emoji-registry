@@ -41,13 +41,15 @@ foo--json_tools--1.2.0.emoji  (tar.gz)
 ├── package.emo          # manifest;name/version/targets/deps 的唯一权威来源
 ├── json_tools.emo       # 源码
 ├── internal/...         # 私有子树原样保留
+├── README.md            # 可选,仅根部;在包详情页渲染,不参与 digest
 └── EMO-METADATA.json    # 服务端生成:描述/license/作者、逐文件 SHA-256 清单
 ```
 
 不变式:
 
-- **内容 digest 只对 `.emo` 文件计算**;客户端解包时忽略 `EMO-METADATA.json`,因此
-  解包归档的 digest 永远与 lockfile checksum 一致。
+- **内容 digest 只对 `.emo` 文件计算**;客户端解包时忽略 `EMO-METADATA.json` 与
+  `README.md`,因此解包归档的 digest 永远与 lockfile checksum 一致。(编译器的
+  `collect_files` 只收集 `.emo` 文件,归档里多带 README 对现有客户端是安全的。)
 - `package.emo` 由作者编写,是权威来源;`EMO-METADATA.json` 由服务端生成(类比
   RubyGems 的 `metadata.gz`),绝不回写进 manifest——旧编译器不受影响。
 
@@ -111,6 +113,9 @@ GET /:owner/:name/versions                  → ["0.1.0", "0.2.0"]   (JSON 数�
 GET /:owner/:name/:version/package.emo      → manifest 原文
 GET /:owner/:name/:version/<path>.emo       → 单个源文件
 ```
+
+协议 A 只提供 `.emo` 源文件——它是编译器的拉包通道,`README.md` 与
+`EMO-METADATA.json` 有意不在此暴露。
 
 这一层也可以原样导出为静态文件树扔到 CDN。
 
@@ -194,6 +199,7 @@ GET /api/v1/packages/:owner/:name
   "homepage": "https://example.com",
   "repository": "https://github.com/foo/json_tools",
   "downloads": 12345,
+  "downloads_last_30d": 987,
   "owners": ["foo"],
   "latest_version": "1.2.0",
   "created_at": "...", "updated_at": "..."
@@ -236,28 +242,35 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 
 ## 6. 服务端数据模型
 
-- `users`(email, password_hash, name)
-- `organizations` + `memberships`——二期;一期 owner 直接等于 user
-- `api_tokens`(user_id, token_hash, scopes, expires_at)
-- `packages`(owner_scope, name, description, license, homepage, repo_url, downloads,
-  reserved 标记)
-- `versions`(package_id, version, checksum_sha256, archive_sha256, targets[], size,
-  yanked_at, published_by, storage_key)
-- `package_owners`(package_id, user_id)
-- `downloads`(version_id, date, count)——聚合表,异步落库
+- `users`(username, email, password_digest)
+- `organizations`(name, display_name, user_id)+ `memberships`(organization_id,
+  user_id, role)——用户名与组织名共用一个命名空间:两者都能作为包的 scope,注册时
+  跨两张表查重。组织的任何成员(owner 或 member)都能以组织 scope 发布、yank、
+  改元信息;只有 owner 能管理成员。
+- `api_tokens`(user_id, name, token_hash, scopes, expires_at, last_used_at)
+- `packages`(owner_scope, name, description, license, homepage, repository, user_id,
+  downloads)
+- `versions`(package_id, version, checksum, archive_sha256, targets, deps, size,
+  yanked_at, user_id, storage_key)
+- `reserved_names`(name, reason)——短名保留名单,启动时从硬编码 stdlib 名单播种,
+  运营可扩充
+- `downloads`(version_id, date, count)——按版本按日的聚合表,每次下载同步写入
+  ((version_id, date) 唯一索引保证行唯一;读-改-写竞争最坏只是少计)
 
 ## 7. 安全与治理
 
 - 版本不可变 + yank 不删档 → 供应链可审计。
 - 短名保留名单在注册时强制。
 - 上传大小限制(纯源码包 10MB 足够);归档内只允许 `.emo` 文件白名单。
-- 发布与搜索端点限流。
+- 限流:发布按 token 用户(30 次/小时),signup/login 与搜索按 IP(10 次/分钟、
+  60 次/分钟)。进程内固定窗口;Redis 后端留待三期。
 - 只存 token 哈希;密码 bcrypt。
 
 ## 8. 分期路线
 
 1. **一期(可用闭环)**:账号 + token、publish/yank、协议 A 与 B 双全、版本列表、
    归档下载、Web 包详情页。官方编译器把 `EMO_REGISTRY` 指过来即可经协议 A 拉包。
-2. **二期**:organizations、批量 dependencies API 强化、搜索、下载统计、README 渲染。
-3. **三期**:静态导出到 CDN、私有包与 `read` scope token、`emo publish` / `emo search`
+2. **二期**:批量 dependencies API 强化。
+3. **三期**:静态导出到 CDN、私有包与 `read` scope token、Redis 化的下载统计与限流、
+   `emo publish` / `emo search`
    CLI 合入编译器仓库。

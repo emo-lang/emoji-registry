@@ -11,6 +11,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/orgs"
 )
 
 // SignupAction handles POST /api/v1/signup. It creates the account but does
@@ -33,8 +34,17 @@ func SignupAction(c *gin.Context) {
 		respondError(c, http.StatusUnprocessableEntity, "invalid_params", "username must be 1-64 chars of [a-z0-9_-]")
 		return
 	}
-	if emoji.IsReserved(input.Username) {
-		respondError(c, http.StatusForbidden, "name_reserved", input.Username+" is reserved for the official stdlib")
+	if reason, err := orgs.NameTakenReason(input.Username); err != nil {
+		respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	} else if reason != "" {
+		code := "username_taken"
+		status := http.StatusConflict
+		if emoji.IsReserved(input.Username) {
+			code = "name_reserved"
+			status = http.StatusForbidden
+		}
+		respondError(c, status, code, reason)
 		return
 	}
 	if !strings.Contains(input.Email, "@") || len(input.Email) > 255 {
@@ -43,14 +53,6 @@ func SignupAction(c *gin.Context) {
 	}
 	if len(input.Password) < 8 {
 		respondError(c, http.StatusUnprocessableEntity, "invalid_params", "password must be at least 8 characters")
-		return
-	}
-
-	if exists, err := repo.ExistsWhere[models.User](sql.H{"username": input.Username}); err != nil {
-		respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
-		return
-	} else if exists {
-		respondError(c, http.StatusConflict, "username_taken", "username "+input.Username+" is taken")
 		return
 	}
 

@@ -21,6 +21,10 @@ const MaxArchiveContentsSize = 10 << 20 // 10 MB
 // an unpacked archive still matches the lockfile checksum.
 const MetadataFileName = "EMO-METADATA.json"
 
+// ReadmeFileName is the one non-source file authors may ship: a root-level,
+// case-sensitive README.md. It never feeds the content digest.
+const ReadmeFileName = "README.md"
+
 // Result is the outcome of processing an uploaded .emoji archive.
 type Result struct {
 	Manifest      *Manifest
@@ -29,6 +33,8 @@ type Result struct {
 	Archive       []byte
 	// Files holds the .emo sources only (no EMO-METADATA.json).
 	Files map[string][]byte
+	// Readme holds the root README.md content, nil when absent.
+	Readme []byte
 }
 
 // Unpack decodes a .emoji archive (gzip tar) into a path → content map.
@@ -82,8 +88,9 @@ func Unpack(data []byte) (map[string][]byte, error) {
 }
 
 // Validate enforces the archive content rules: package.emo must be present,
-// every file must be an .emo source (the only exception is a root-level
-// EMO-METADATA.json), and the total size must stay within the limit.
+// every file must be an .emo source (the only exceptions are a root-level
+// EMO-METADATA.json and a root-level README.md), and the total size must stay
+// within the limit.
 func Validate(files map[string][]byte) error {
 	if _, ok := files["package.emo"]; !ok {
 		return fmt.Errorf("archive must contain package.emo")
@@ -92,10 +99,11 @@ func Validate(files map[string][]byte) error {
 	var total int64
 	for name, content := range files {
 		if !strings.HasSuffix(name, ".emo") {
-			if name == MetadataFileName {
+			if name == MetadataFileName || name == ReadmeFileName {
+				total += int64(len(content))
 				continue
 			}
-			return fmt.Errorf("file %q is not allowed: only .emo sources are permitted", name)
+			return fmt.Errorf("file %q is not allowed: only .emo sources (plus a root README.md) are permitted", name)
 		}
 		total += int64(len(content))
 	}
@@ -176,14 +184,19 @@ func ProcessUpload(data []byte) (*Result, error) {
 
 	digest := Digest(sources)
 
-	metadata, err := buildMetadata(sources, digest)
+	readme := files[ReadmeFileName]
+
+	metadata, err := buildMetadata(sources, readme, digest)
 	if err != nil {
 		return nil, err
 	}
 
-	withMetadata := make(map[string][]byte, len(sources)+1)
+	withMetadata := make(map[string][]byte, len(sources)+2)
 	for name, content := range sources {
 		withMetadata[name] = content
+	}
+	if readme != nil {
+		withMetadata[ReadmeFileName] = readme
 	}
 	withMetadata[MetadataFileName] = metadata
 
@@ -198,6 +211,7 @@ func ProcessUpload(data []byte) (*Result, error) {
 		ArchiveSHA256: SHA256Hex(archive),
 		Archive:       archive,
 		Files:         sources,
+		Readme:        readme,
 	}, nil
 }
 
@@ -207,10 +221,13 @@ type metadataFile struct {
 	Files       map[string]string `json:"files"`
 }
 
-func buildMetadata(sources map[string][]byte, digest string) ([]byte, error) {
-	perFile := make(map[string]string, len(sources))
+func buildMetadata(sources map[string][]byte, readme []byte, digest string) ([]byte, error) {
+	perFile := make(map[string]string, len(sources)+1)
 	for name, content := range sources {
 		perFile[name] = SHA256Hex(content)
+	}
+	if readme != nil {
+		perFile[ReadmeFileName] = SHA256Hex(readme)
 	}
 
 	metadata := metadataFile{
