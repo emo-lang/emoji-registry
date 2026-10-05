@@ -7,7 +7,7 @@ tool github.com/a-h/templ/cmd/templ
 require (
 	github.com/a-h/templ v0.3.1070
 	github.com/daqing/airway v0.19.1
-	github.com/daqing/airway-ratelimit v0.0.0
+	github.com/daqing/airway-ratelimit-plugin v0.1.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/joho/godotenv v1.5.1
 	github.com/yuin/goldmark v1.6.0
@@ -88,5 +88,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.58.0 // indirect
 )
-
-replace github.com/daqing/airway-ratelimit => ../../airway-project/airway-ratelimit-plugin

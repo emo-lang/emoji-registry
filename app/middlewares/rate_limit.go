@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	ratelimit "github.com/daqing/airway-ratelimit"
+	ratelimit "github.com/daqing/airway-ratelimit-plugin"
 	"github.com/gin-gonic/gin"
 )
 
