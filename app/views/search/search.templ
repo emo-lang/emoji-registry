@@ -1,0 +1,27 @@
+package search
+
+import (
+	"strconv"
+
+	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+	"github.com/emo-lang/emoji-registry/app/views/packages"
+)
+
+// Results renders the search results page for query q.
+templ Results(username string, q string, results []*models.Package) {
+	@layouts.Base("Search: "+q, username) {
+		<main class="er-page">
+			@packages.CardStyles()
+			<h1>Search</h1>
+			if q == "" {
+				<p class="er-muted">Type a query to search packages by name or description.</p>
+			} else {
+				<p class="er-muted">{ strconv.Itoa(len(results)) } result(s) for "{ q }"</p>
+				for _, pkg := range results {
+					@packages.Card(pkg)
+				}
+			}
+		</main>
+	}
+}

@@ -1,0 +1,58 @@
+package auth
+
+import (
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// Signup renders the registration form. err is non-empty when a previous
+// submission failed validation.
+templ Signup(err string, username string, email string) {
+	@layouts.Base("Sign up", "") {
+		<main class="er-page" style="max-width: 420px;">
+			<h1>Create your account</h1>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<form method="post" action="/signup">
+				<div class="er-field">
+					<label for="username">Username</label>
+					<input class="er-input" id="username" name="username" value={ username } required maxlength="64" pattern="[a-z0-9_\-]+"/>
+				</div>
+				<div class="er-field">
+					<label for="email">Email</label>
+					<input class="er-input" id="email" type="email" name="email" value={ email } required/>
+				</div>
+				<div class="er-field">
+					<label for="password">Password (at least 8 characters)</label>
+					<input class="er-input" id="password" type="password" name="password" required minlength="8"/>
+				</div>
+				<button class="er-btn" type="submit">Sign up</button>
+			</form>
+			<p class="er-muted" style="margin-top: 16px;">Already have an account? <a href="/login">Log in</a></p>
+		</main>
+	}
+}
+
+// Login renders the login form.
+templ Login(err string, email string) {
+	@layouts.Base("Log in", "") {
+		<main class="er-page" style="max-width: 420px;">
+			<h1>Log in</h1>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<form method="post" action="/login">
+				<div class="er-field">
+					<label for="email">Email</label>
+					<input class="er-input" id="email" type="email" name="email" value={ email } required/>
+				</div>
+				<div class="er-field">
+					<label for="password">Password</label>
+					<input class="er-input" id="password" type="password" name="password" required/>
+				</div>
+				<button class="er-btn" type="submit">Log in</button>
+			</form>
+			<p class="er-muted" style="margin-top: 16px;">No account yet? <a href="/signup">Sign up</a></p>
+		</main>
+	}
+}

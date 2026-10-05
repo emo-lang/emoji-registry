@@ -1,0 +1,107 @@
+package tokens
+
+import (
+	"strconv"
+	"strings"
+
+	airwaysql "github.com/daqing/airway/lib/sql"
+
+	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// Index renders the token list plus the create form.
+templ Index(username string, tokens []*models.APIToken, err string) {
+	@layouts.Base("API Tokens", username) {
+		<main class="er-page">
+			<style>
+				.token-row { display: flex; gap: 14px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
+				.token-row .name { font-weight: 650; }
+				.token-row .meta { color: var(--er-muted); font-size: 13px; }
+				.token-row form { margin-left: auto; }
+				.scope-checks { display: flex; gap: 16px; margin-top: 4px; font-size: 14px; }
+			</style>
+			<h1>API Tokens</h1>
+			<p class="er-muted">Tokens authenticate <code>emo publish</code> and other CLI operations. The plaintext token is shown exactly once at creation.</p>
+			<section>
+				<h2>Create token</h2>
+				if err != "" {
+					<div class="er-error">{ err }</div>
+				}
+				<form method="post" action="/tokens" style="max-width: 420px;">
+					<div class="er-field">
+						<label for="name">Name</label>
+						<input class="er-input" id="name" name="name" required maxlength="64" placeholder="laptop CLI"/>
+					</div>
+					<div class="er-field">
+						<label>Scopes</label>
+						<div class="scope-checks">
+							<label><input type="checkbox" name="scopes" value="push" checked/> push</label>
+							<label><input type="checkbox" name="scopes" value="yank"/> yank</label>
+						</div>
+					</div>
+					<div class="er-field">
+						<label for="expires_in_days">Expires in days (optional, empty = never)</label>
+						<input class="er-input" id="expires_in_days" name="expires_in_days" type="number" min="1"/>
+					</div>
+					<button class="er-btn" type="submit">Create token</button>
+				</form>
+			</section>
+			<section style="margin-top: 32px;">
+				<h2>Your tokens</h2>
+				if len(tokens) == 0 {
+					<p class="er-muted">No tokens yet.</p>
+				}
+				for _, token := range tokens {
+					@tokenRow(token)
+				}
+			</section>
+		</main>
+	}
+}
+
+templ tokenRow(token *models.APIToken) {
+	<div class="token-row">
+		<span class="name">{ token.Name }</span>
+		<span class="meta">{ strings.Split(token.Scopes, ",")[0] }{ scopesSuffix(token.Scopes) }</span>
+		<span class="meta">created { token.CreatedAt.Format("2006-01-02") }</span>
+		if token.LastUsedAt != nil {
+			<span class="meta">last used { token.LastUsedAt.Format("2006-01-02") }</span>
+		} else {
+			<span class="meta">never used</span>
+		}
+		if token.ExpiresAt != nil {
+			<span class="meta">expires { token.ExpiresAt.Format("2006-01-02") }</span>
+		} else {
+			<span class="meta">never expires</span>
+		}
+		<form method="post" action={ templ.SafeURL("/tokens/" + idString(token.ID) + "/delete") }>
+			<button class="er-btn" type="submit">Delete</button>
+		</form>
+	</div>
+}
+
+// Created renders the one-time plaintext token after creation.
+templ Created(username string, name string, plain string) {
+	@layouts.Base("Token created", username) {
+		<main class="er-page" style="max-width: 560px;">
+			<h1>Token created</h1>
+			<p>Your new token <strong>{ name }</strong> is ready. Copy it now — <strong>it will never be shown again</strong>.</p>
+			<pre class="er-code" style="font-size: 15px; user-select: all;">{ plain }</pre>
+			<p class="er-muted">Use it with: <code>emo login --token { plain }</code> or as an <code>Authorization: Bearer</code> header.</p>
+			<p><a class="er-btn" href="/tokens">Back to tokens</a></p>
+		</main>
+	}
+}
+
+func scopesSuffix(scopes string) string {
+	parts := strings.Split(scopes, ",")
+	if len(parts) <= 1 {
+		return ""
+	}
+	return ", " + strings.Join(parts[1:], ", ")
+}
+
+func idString(id airwaysql.IdType) string {
+	return strconv.FormatInt(int64(id), 10)
+}

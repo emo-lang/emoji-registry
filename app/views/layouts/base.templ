@@ -1,0 +1,119 @@
+package layouts
+
+import (
+	"github.com/daqing/airway/app/assets"
+	"github.com/daqing/airway/lib/utils"
+)
+
+// Base renders the shared HTML document shell with the registry top
+// navigation. username is empty when the visitor is not logged in. Page
+// templates wrap their content in this component, e.g.:
+//
+//	@layouts.Base("My Title", "") {
+//		<p>Page body…</p>
+//	}
+templ Base(title string, username string, description ...string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ title }</title>
+			if len(description) > 0 {
+				<meta name="description" content={ description[0] }/>
+				<meta property="og:title" content={ title }/>
+				<meta property="og:description" content={ description[0] }/>
+				<meta property="og:type" content="website"/>
+				<meta name="theme-color" content="#101319"/>
+			}
+			<style>
+				:root {
+					--er-bg: #fafaf7; --er-ink: #232820; --er-muted: #6d7369;
+					--er-line: #dfe2d7; --er-accent: #5d763c; --er-code-bg: #f0f2ea;
+				}
+				@media (prefers-color-scheme: dark) {
+					:root {
+						--er-bg: #101319; --er-ink: #f3f4ef; --er-muted: #9a9eaa;
+						--er-line: #2b303a; --er-accent: #c2f16b; --er-code-bg: #171b23;
+					}
+				}
+				body {
+					position: relative;
+					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+					background: var(--er-bg); color: var(--er-ink);
+					padding: 0; margin: 0;
+					-webkit-font-smoothing: antialiased;
+				}
+				.topnav {
+					display: flex; align-items: center; gap: 18px;
+					padding: 12px 24px; border-bottom: 1px solid var(--er-line);
+				}
+				.topnav a { color: var(--er-ink); text-decoration: none; }
+				.topnav .brand { font-weight: 700; letter-spacing: -0.5px; }
+				.topnav .brand .accent { color: var(--er-accent); }
+				.topnav .nav-search { flex: 1; max-width: 420px; }
+				.topnav .nav-search input {
+					width: 100%; padding: 6px 12px; font-size: 14px;
+					border: 1px solid var(--er-line); border-radius: 6px;
+					background: var(--er-bg); color: var(--er-ink);
+				}
+				.topnav nav { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 14px; }
+				.topnav .nav-user { color: var(--er-muted); }
+				.topnav form.inline { display: inline; margin: 0; }
+				.topnav form.inline button {
+					background: none; border: none; padding: 0; cursor: pointer;
+					color: var(--er-ink); font-size: 14px;
+				}
+				.er-page { width: min(880px, calc(100% - 48px)); margin: 0 auto; padding-block: 40px; }
+				.er-muted { color: var(--er-muted); }
+				.er-code {
+					font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+					font-size: .9em; background: var(--er-code-bg); border: 1px solid var(--er-line);
+					border-radius: 6px; padding: 12px 16px; white-space: pre; overflow-x: auto;
+				}
+				.er-btn {
+					display: inline-block; padding: 6px 14px; font-size: 14px; cursor: pointer;
+					border: 1px solid var(--er-line); border-radius: 6px;
+					background: var(--er-code-bg); color: var(--er-ink); text-decoration: none;
+				}
+				.er-input {
+					width: 100%; padding: 8px 12px; font-size: 14px; margin-top: 4px;
+					border: 1px solid var(--er-line); border-radius: 6px;
+					background: var(--er-bg); color: var(--er-ink);
+				}
+				.er-field { margin-bottom: 16px; }
+				.er-field label { font-size: 13px; color: var(--er-muted); }
+				.er-error {
+					padding: 10px 14px; margin-bottom: 16px; font-size: 14px;
+					border: 1px solid #c66; border-radius: 6px; color: #b3453a;
+				}
+			</style>
+			@assets.Stylesheet()
+			if utils.AppConfig().IsLocal {
+				<script src={ templ.URL(utils.URLPrefix() + "/assets/livereload.js") } data-ws={ utils.URLPrefix() + "/ws" } defer></script>
+			}
+			@assets.Scripts()
+		</head>
+		<body>
+			<header class="topnav">
+				<a class="brand" href="/">Emo Registry<span class="accent">.</span></a>
+				<form class="nav-search" action="/search" method="get">
+					<input type="search" name="q" placeholder="Search packages…"/>
+				</form>
+				<nav>
+					if username != "" {
+						<span class="nav-user">{ username }</span>
+						<a href="/tokens">Tokens</a>
+						<form class="inline" method="post" action="/logout">
+							<button type="submit">Logout</button>
+						</form>
+					} else {
+						<a href="/login">Login</a>
+						<a href="/signup">Signup</a>
+					}
+				</nav>
+			</header>
+			{ children... }
+		</body>
+	</html>
+}

@@ -1,0 +1,29 @@
+package packages
+
+import (
+	"fmt"
+
+	"github.com/emo-lang/emoji-registry/app/models"
+)
+
+// Card renders one package row used by the home and search pages.
+templ Card(pkg *models.Package) {
+	<div class="pkg-card">
+		<a class="pkg-name" href={ templ.SafeURL("/p/" + pkg.OwnerScope + "/" + pkg.Name) }>{ pkg.FullName() }</a>
+		if pkg.Description != "" {
+			<p class="pkg-desc">{ pkg.Description }</p>
+		}
+		<span class="pkg-meta">{ fmt.Sprintf("%d downloads", pkg.Downloads) }</span>
+	</div>
+}
+
+// CardStyles is emitted once by pages that render cards.
+templ CardStyles() {
+	<style>
+		.pkg-card { padding: 14px 0; border-bottom: 1px solid var(--er-line); }
+		.pkg-card .pkg-name { font-weight: 650; color: var(--er-ink); text-decoration: none; }
+		.pkg-card .pkg-name:hover { color: var(--er-accent); }
+		.pkg-card .pkg-desc { margin: 4px 0; font-size: 14px; color: var(--er-muted); }
+		.pkg-card .pkg-meta { font-size: 12px; color: var(--er-muted); }
+	</style>
+}

@@ -1,0 +1,106 @@
+package packages
+
+import (
+	"strconv"
+	"strings"
+
+	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// Show renders the package detail page. versions are ordered newest first;
+// latest is the newest non-yanked version (nil when every version is yanked).
+templ Show(username string, pkg *models.Package, versions []*models.Version, latest *models.Version, latestDeps map[string]string) {
+	@layouts.Base(pkg.FullName(), username, pkg.Description) {
+		<main class="er-page">
+			<style>
+				.pkg-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+				.pkg-head h1 { margin: 0; font-size: 32px; letter-spacing: -1px; }
+				.pkg-head .license { font-size: 13px; color: var(--er-muted); }
+				.pkg-links { margin-top: 8px; font-size: 14px; display: flex; gap: 16px; }
+				.pkg-links a { color: var(--er-accent); }
+				.pkg-section { margin-top: 32px; }
+				.pkg-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }
+				.version-row { display: flex; gap: 14px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
+				.version-row .v { font-family: monospace; font-weight: 650; }
+				.version-row .meta { color: var(--er-muted); font-size: 13px; }
+				.version-row.yanked .v, .version-row.yanked .meta { color: var(--er-muted); text-decoration: line-through; }
+				.version-row .yanked-tag { font-size: 12px; color: #b3453a; text-decoration: none; }
+				.deps-list { font-family: monospace; font-size: 14px; }
+				.deps-list .dep { padding: 2px 0; }
+			</style>
+			<div class="pkg-head">
+				<h1>{ pkg.FullName() }</h1>
+				if pkg.License != "" {
+					<span class="license">{ pkg.License }</span>
+				}
+				<span class="license">{ strconv.FormatInt(pkg.Downloads, 10) } downloads</span>
+			</div>
+			if pkg.Description != "" {
+				<p>{ pkg.Description }</p>
+			}
+			<div class="pkg-links">
+				if pkg.Homepage != "" {
+					<a href={ templ.SafeURL(pkg.Homepage) }>Homepage</a>
+				}
+				if pkg.Repository != "" {
+					<a href={ templ.SafeURL(pkg.Repository) }>Repository</a>
+				}
+			</div>
+			if latest != nil {
+				<section class="pkg-section">
+					<h2>Install</h2>
+					<pre class="er-code">{ "# package.emo\ndeps {\n  " + pkg.FullName() + " = \"" + latest.Version + "\"\n}" }</pre>
+					<pre class="er-code">{ "require \"" + pkg.FullName() + "\"" }</pre>
+					<p>
+						<a class="er-btn" href={ templ.SafeURL("/downloads/" + pkg.OwnerScope + "--" + pkg.Name + "--" + latest.Version + ".emoji") }>
+							Download { pkg.OwnerScope }--{ pkg.Name }--{ latest.Version }.emoji
+						</a>
+					</p>
+				</section>
+				if len(latestDeps) > 0 {
+					<section class="pkg-section">
+						<h2>Dependencies ({ latest.Version })</h2>
+						<div class="deps-list">
+							for name, version := range latestDeps {
+								<div class="dep">{ name } = "{ version }"</div>
+							}
+						</div>
+					</section>
+				}
+			}
+			<section class="pkg-section">
+				<h2>Versions</h2>
+				for _, version := range versions {
+					@versionRow(pkg, version)
+				}
+			</section>
+		</main>
+	}
+}
+
+templ versionRow(pkg *models.Package, version *models.Version) {
+	if version.Yanked() {
+		<div class="version-row yanked">
+			<span class="v">{ version.Version }</span>
+			<span class="meta">{ version.CreatedAt.Format("2006-01-02") }</span>
+			<span class="meta">{ strings.Join(version.TargetList(), ", ") }</span>
+			<span class="meta">sha256:{ shortChecksum(version.Checksum) }</span>
+			<span class="yanked-tag">yanked</span>
+		</div>
+	} else {
+		<div class="version-row">
+			<span class="v">{ version.Version }</span>
+			<span class="meta">{ version.CreatedAt.Format("2006-01-02") }</span>
+			<span class="meta">{ strings.Join(version.TargetList(), ", ") }</span>
+			<span class="meta">sha256:{ shortChecksum(version.Checksum) }</span>
+		</div>
+	}
+}
+
+func shortChecksum(checksum string) string {
+	if len(checksum) > 12 {
+		return checksum[:12]
+	}
+	return checksum
+}

@@ -1,0 +1,16 @@
+package errors
+
+import (
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// NotFound renders a friendly 404 page.
+templ NotFound(username string, message string) {
+	@layouts.Base("Not found", username) {
+		<main class="er-page">
+			<h1>404 — not found</h1>
+			<p class="er-muted">{ message }</p>
+			<p><a href="/">Back to the registry home</a></p>
+		</main>
+	}
+}

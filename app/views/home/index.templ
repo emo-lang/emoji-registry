@@ -1,0 +1,56 @@
+package home
+
+import (
+	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+	"github.com/emo-lang/emoji-registry/app/views/packages"
+)
+
+// Index renders the registry home page with the newest and most downloaded
+// packages.
+templ Index(username string, latest []*models.Package, top []*models.Package) {
+	@layouts.Base("Emo Registry", username, "The package registry for the Emo programming language.") {
+		<main class="er-page">
+			@packages.CardStyles()
+			<style>
+				.hero { text-align: center; padding: 48px 0 32px; }
+				.hero h1 { margin: 0; font-size: clamp(36px, 6vw, 56px); font-weight: 700; letter-spacing: -2px; }
+				.hero h1 .accent { color: var(--er-accent); }
+				.hero .lead { margin-top: 12px; color: var(--er-muted); }
+				.hero .hero-search { margin: 24px auto 0; max-width: 480px; }
+				.hero .hero-search input {
+					width: 100%; padding: 10px 16px; font-size: 15px;
+					border: 1px solid var(--er-line); border-radius: 8px;
+					background: var(--er-bg); color: var(--er-ink);
+				}
+				.home-section { margin-top: 32px; }
+				.home-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }
+			</style>
+			<section class="hero">
+				<h1>Emo Registry<span class="accent">.</span></h1>
+				<p class="lead">The package registry for the Emo programming language.</p>
+				<form class="hero-search" action="/search" method="get">
+					<input type="search" name="q" placeholder="Search packages…" autofocus/>
+				</form>
+			</section>
+			<section class="home-section">
+				<h2>Recently published</h2>
+				if len(latest) == 0 {
+					<p class="er-muted">No packages yet.</p>
+				}
+				for _, pkg := range latest {
+					@packages.Card(pkg)
+				}
+			</section>
+			<section class="home-section">
+				<h2>Most downloaded</h2>
+				if len(top) == 0 {
+					<p class="er-muted">No packages yet.</p>
+				}
+				for _, pkg := range top {
+					@packages.Card(pkg)
+				}
+			</section>
+		</main>
+	}
+}
