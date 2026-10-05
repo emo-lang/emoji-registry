@@ -175,3 +175,88 @@ docker run -p 1905:1905 -e DSN="sqlite://data/registry.db" emo-registry
 
 超过单容器规模时请把 `DSN` 换成 PostgreSQL/MySQL;挂载 `/app/data` 卷可持久化
 SQLite 文件与已存储的归档。
+
+## 企业内网部署
+
+自建实例是一等场景:Emo 工具链只需要把 `EMO_REGISTRY` 指向你的服务器。
+典型的内网部署结构:
+
+```
+开发者 ──> nginx (TLS) ──> emo-registry (:1905)
+                              ├── PostgreSQL / MySQL / SQLite
+                              ├── Redis(可选)
+                              └── 存储:本地目录或内网 S3/SeaweedFS
+```
+
+### 1. 运行服务
+
+```bash
+docker build -t emo-registry .
+docker run --rm \
+  -e DSN="postgres://registry:secret@db.internal:5432/registry" \
+  emo-registry db:migrate        # 一次性:执行迁移
+
+docker run -d --name emo-registry -p 1905:1905 \
+  -e AIRWAY_ENV=production \
+  -e DSN="postgres://registry:secret@db.internal:5432/registry" \
+  -e REDIS="redis://redis.internal:6379/0" \
+  -e STORAGE_DRIVER="local" \
+  -v registry-data:/app/data \
+  emo-registry
+```
+
+环境变量(完整列表见 `.env.example`):
+
+| 变量 | 必填 | 说明 |
+|---|---|---|
+| `DSN` | 是 | 生产用 PostgreSQL/MySQL;小团队用 SQLite 即可 |
+| `REDIS` | 否 | 启用 Redis 后端的限流与下载计数;不配则两者退回进程内模式 |
+| `STORAGE_DRIVER` | 否 | `local`(默认)、`s3`、`r2`、`cos`;SeaweedFS 用 `s3` + `STORAGE_ENDPOINT` 接入 |
+| `URL_PREFIX` | 否 | 在代理后以子路径提供服务时设置,如 `/registry` |
+| `LISTEN` | 否 | 默认 `127.0.0.1:1905`;Docker 镜像里为 `:1905` |
+
+多副本部署必须配置 `REDIS`——否则每个副本各自持有独立的限流配额和
+下载计数。
+
+### 2. 创建第一个管理员
+
+授予管理员没有 Web 入口,使用 CLI:
+
+```bash
+docker exec emo-registry /app/app admin:grant <用户名>
+```
+
+管理员在 `/admin/reserved` 管理保留的顶级短名(`net`、`http` 等)。
+
+### 3. 内部代码保持私有
+
+专有包发布为私有(`PATCH /api/v1/packages/:owner/:name` 传
+`{"visibility":"private"}`,或用包详情页上的切换按钮)。私有包对匿名用户
+完全不可见——连存在性都不暴露(404,与不存在的包一致)。开发者用带
+`read` scope 的 token 拉取:
+
+```bash
+export EMO_REGISTRY=https://registry.internal.example.com
+export EMO_TOKEN=emo_...        # 带 read scope 的 token
+emo deps resolve
+```
+
+用组织(`/orgs`)让整个团队在共享 scope(如 `acme/widgets`)下获得
+发布/读取权限。
+
+### 4. 用静态镜像承载只读流量(可选)
+
+协议 A 是纯文件语义,整个公开注册表可以导出后托管到内网任意静态文件
+服务器或 CDN:
+
+```bash
+docker exec emo-registry /app/app registry:export /app/data/export
+# 把 /app/data/export 同步到 nginx / S3;EMO_REGISTRY 指向它
+```
+
+私有包永不导出。可用 cron 周期执行,或在每次发布后执行。
+
+### 5. 备份
+
+全部状态只存在于两处:数据库和存储目录(local 驱动下为
+`/app/data/storage`)。两者都要备份;归档不可变,增量复制即可。

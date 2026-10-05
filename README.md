@@ -187,3 +187,92 @@ docker run -p 1905:1905 -e DSN="sqlite://data/registry.db" emo-registry
 
 Set `DSN` to a PostgreSQL/MySQL URL for anything beyond a single container;
 mount a volume at `/app/data` to keep the SQLite file and stored archives.
+
+## Deploying on a company intranet
+
+A self-hosted instance is a first-class scenario: the Emo toolchain only needs
+`EMO_REGISTRY` pointed at your server. A typical intranet setup looks like:
+
+```
+developers ──> nginx (TLS) ──> emo-registry (:1905)
+                                  ├── PostgreSQL / MySQL / SQLite
+                                  ├── Redis (optional)
+                                  └── storage: local dir or internal S3/SeaweedFS
+```
+
+### 1. Run the service
+
+```bash
+docker build -t emo-registry .
+docker run --rm \
+  -e DSN="postgres://registry:secret@db.internal:5432/registry" \
+  emo-registry db:migrate        # one-off: apply migrations
+
+docker run -d --name emo-registry -p 1905:1905 \
+  -e AIRWAY_ENV=production \
+  -e DSN="postgres://registry:secret@db.internal:5432/registry" \
+  -e REDIS="redis://redis.internal:6379/0" \
+  -e STORAGE_DRIVER="local" \
+  -v registry-data:/app/data \
+  emo-registry
+```
+
+Environment variables (see `.env.example` for the full list):
+
+| Variable | Required | Notes |
+|---|---|---|
+| `DSN` | yes | PostgreSQL/MySQL for production; SQLite is fine for a small team |
+| `REDIS` | no | enables Redis-backed rate limiting and download counters; without it both fall back to in-process mode |
+| `STORAGE_DRIVER` | no | `local` (default), `s3`, `r2`, `cos`; SeaweedFS works via `s3` + `STORAGE_ENDPOINT` |
+| `URL_PREFIX` | no | set when serving under a sub-path behind a proxy, e.g. `/registry` |
+| `LISTEN` | no | defaults to `127.0.0.1:1905`; the Docker image sets `:1905` |
+
+Multi-replica deployments need `REDIS` — otherwise each replica has its own
+rate-limit budgets and download counters.
+
+### 2. Create the first admin
+
+There is no web UI for granting admin. Use the CLI:
+
+```bash
+docker exec emo-registry /app/app admin:grant <username>
+```
+
+Admins manage the reserved top-level names (`net`, `http`, …) at
+`/admin/reserved`.
+
+### 3. Keep internal code internal
+
+Publish proprietary packages as private (`PATCH /api/v1/packages/:owner/:name`
+with `{"visibility":"private"}`, or the toggle on the package page). Private
+packages are invisible to anonymous users — even their existence is hidden
+(404, same as unknown packages). Developers pull them with a `read`-scoped
+token:
+
+```bash
+export EMO_REGISTRY=https://registry.internal.example.com
+export EMO_TOKEN=emo_...        # token with the read scope
+emo deps resolve
+```
+
+Use organizations (`/orgs`) to give a whole team publish/read access under a
+shared scope like `acme/widgets`.
+
+### 4. Serve read-only traffic from a static mirror (optional)
+
+Protocol A is plain files, so the whole public registry can be exported and
+hosted on any static file server or CDN inside your network:
+
+```bash
+docker exec emo-registry /app/app registry:export /app/data/export
+# sync /app/data/export to nginx / S3; point EMO_REGISTRY there
+```
+
+Private packages are never exported. Run the export periodically (cron) or
+after each publish.
+
+### 5. Backups
+
+Two things hold all state: the database and the storage directory
+(`/app/data/storage` with the local driver). Back up both; archives are
+immutable, so an incremental copy is enough.
