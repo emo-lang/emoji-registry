@@ -66,7 +66,15 @@ func TokenAuth(scopes ...string) gin.HandlerFunc {
 			return
 		}
 		if token.ExpiresAt != nil && token.ExpiresAt.Before(time.Now()) {
-			abortUnauthorized(c, "API token has expired")
+			// A dedicated code, so clients (the Emo CLI) can tell an
+			// expired token from an invalid one and prompt for a fresh
+			// login instead of a re-created credential.
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": gin.H{
+					"code":    "token_expired",
+					"message": "API token has expired — mint a new one (e.g. `emo emoji login`)",
+				},
+			})
 			return
 		}
 		if !tokenHasScopes(token, scopes) {

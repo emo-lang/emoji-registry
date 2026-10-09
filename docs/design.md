@@ -103,8 +103,11 @@ pins a yanked version.
 ### API tokens
 
 Format `emo_<48 hex chars>`; only the SHA-256 hash is stored. Scopes: `push`, `yank`,
-`read` (private packages). Created and revoked from the web UI; optional
-per-package restriction and expiry.
+`read` (private packages). Created and revoked from the web UI, or minted by
+`emo emoji login` (push/yank/read, optional `--expires-in-days`, the expiry recorded
+alongside the token locally); optional per-package restriction and expiry. A token
+past its expiry is refused with the dedicated `token_expired` code, so clients can
+prompt for a fresh login.
 
 ## 5. Wire protocol
 
@@ -116,8 +119,8 @@ Errors share one shape:
 ```
 
 `code` is a stable machine-readable enum (`package_not_found`, `version_not_found`,
-`version_exists`, `invalid_manifest`, `checksum_mismatch`, `unauthorized`, `forbidden`,
-`name_reserved`); `message` is for humans only.
+`version_exists`, `invalid_manifest`, `checksum_mismatch`, `unauthorized`,
+`token_expired`, `forbidden`, `name_reserved`); `message` is for humans only.
 
 ### Private packages
 

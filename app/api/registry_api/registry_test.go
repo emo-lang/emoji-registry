@@ -13,9 +13,11 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/daqing/airway/lib/migrate"
 	"github.com/daqing/airway/lib/repo"
+	"github.com/daqing/airway/lib/sql"
 	"github.com/daqing/airway/lib/storage"
 	"github.com/gin-gonic/gin"
 
@@ -23,6 +25,8 @@ import (
 	"github.com/emo-lang/emoji-registry/app/api/downloads_api"
 	"github.com/emo-lang/emoji-registry/app/api/files_api"
 	"github.com/emo-lang/emoji-registry/app/api/orgs_api"
+	"github.com/emo-lang/emoji-registry/app/middlewares"
+	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	_ "github.com/emo-lang/emoji-registry/db/migrate"
 )
@@ -414,6 +418,31 @@ func TestReservedNames(t *testing.T) {
 	resp := do(t, r, http.MethodPost, "/api/v1/signup", []byte(body), map[string]string{"Content-Type": "application/json"})
 	if resp.Code != http.StatusForbidden || errorCode(t, resp) != "name_reserved" {
 		t.Fatalf("expected 403 name_reserved, got %d: %s", resp.Code, resp.Body.String())
+	}
+}
+
+func TestExpiredToken(t *testing.T) {
+	r := setupTest(t)
+
+	signup(t, r, "alice")
+	token := createToken(t, r, "alice", "push")
+
+	// Force the freshly minted token into the past, as if its expiry had
+	// passed while the CLI held it.
+	stored, err := repo.FindOneBy[models.APIToken](sql.H{"token_hash": middlewares.TokenHash(token)})
+	if err != nil || stored == nil {
+		t.Fatalf("find token: %v", err)
+	}
+	if err := repo.UpdateByID[models.APIToken](stored.ID, sql.H{"expires_at": time.Now().Add(-time.Hour)}); err != nil {
+		t.Fatalf("expire token: %v", err)
+	}
+
+	resp := publish(t, r, token, "alice/expired", "0.1.0")
+	if resp.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d: %s", resp.Code, resp.Body.String())
+	}
+	if code := errorCode(t, resp); code != "token_expired" {
+		t.Fatalf("expected code token_expired, got %q", code)
 	}
 }
 

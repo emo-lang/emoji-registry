@@ -89,7 +89,9 @@ lockfile 已钉住的项目不会断供。客户端在 lockfile 命中 yanked �
 ### API token
 
 格式 `emo_<48 位十六进制>`;只存 SHA-256 哈希。scope 分 `push`、`yank`、`read`
-(私有包)。Web UI 创建/吊销,支持过期时间。
+(私有包)。Web UI 创建/吊销,或由 `emo emoji login` 铸造(push/yank/read,可选
+`--expires-in-days`,过期时间随 token 一并记录在本地);支持过期时间。过期的
+token 会被专用错误码 `token_expired` 拒绝,客户端据此提示重新登录。
 
 ## 5. 通信协议
 
@@ -101,7 +103,7 @@ Base URL 即 `EMO_REGISTRY` 指向的地址。公开只读端点无需 token。�
 
 `code` 是稳定的机器可读枚举(`package_not_found`、`version_not_found`、
 `version_exists`、`invalid_manifest`、`checksum_mismatch`、`unauthorized`、
-`forbidden`、`name_reserved`);`message` 只给人看。
+`token_expired`、`forbidden`、`name_reserved`);`message` 只给人看。
 
 ### 私有包
 
