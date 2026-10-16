@@ -35,15 +35,20 @@ func setupTest(t *testing.T) {
 
 // publishSeed stores a package version the way the publish pipeline does:
 // ProcessUpload archive under packages/<o>/<n>/<v>/package.emoji.
-func publishSeed(t *testing.T, fullName, version string, yanked bool, private bool) {
+func publishSeed(t *testing.T, fullName, version string, yanked bool, private bool, extra map[string]string) {
 	t.Helper()
 
 	owner, name, _ := splitName(fullName)
 
-	archive, err := emoji.BuildArchive(map[string][]byte{
+	files := map[string][]byte{
 		"package.emo": []byte("package {\n  name = \"" + fullName + "\"\n  version = \"" + version + "\"\n}\n"),
 		"main.emo":    []byte("let main = 1 // " + version),
-	})
+	}
+	for path, content := range extra {
+		files[path] = []byte(content)
+	}
+
+	archive, err := emoji.BuildArchive(files)
 	if err != nil {
 		t.Fatalf("build: %v", err)
 	}
@@ -120,10 +125,13 @@ func readFile(t *testing.T, path string) string {
 func TestExport(t *testing.T) {
 	setupTest(t)
 
-	publishSeed(t, "alice/tools", "0.2.0", false, false)
-	publishSeed(t, "alice/tools", "0.1.0", false, false)
-	publishSeed(t, "alice/old", "1.0.0", true, false)
-	publishSeed(t, "alice/secret", "1.0.0", false, true)
+	publishSeed(t, "alice/tools", "0.2.0", false, false, map[string]string{
+		"shim.c": "/* native shim */",
+		"shim.h": "#pragma once",
+	})
+	publishSeed(t, "alice/tools", "0.1.0", false, false, nil)
+	publishSeed(t, "alice/old", "1.0.0", true, false, nil)
+	publishSeed(t, "alice/secret", "1.0.0", false, true, nil)
 
 	dir := t.TempDir()
 
@@ -132,7 +140,7 @@ func TestExport(t *testing.T) {
 		t.Fatalf("export: %v", err)
 	}
 
-	if stats.Packages != 2 || stats.SkippedPrivate != 1 || stats.Archives != 3 {
+	if stats.Packages != 2 || stats.SkippedPrivate != 1 || stats.Archives != 3 || stats.Files != 6 {
 		t.Fatalf("unexpected stats: %+v", stats)
 	}
 
@@ -152,6 +160,14 @@ func TestExport(t *testing.T) {
 	}
 	if got := readFile(t, filepath.Join(dir, "alice/tools/0.2.0/main.emo")); got != "let main = 1 // 0.2.0" {
 		t.Fatalf("source content wrong: %q", got)
+	}
+
+	// Native sources ride along; the server-generated metadata does not.
+	if got := readFile(t, filepath.Join(dir, "alice/tools/0.2.0/shim.c")); got != "/* native shim */" {
+		t.Fatalf("native source content wrong: %q", got)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "alice/tools/0.2.0/EMO-METADATA.json")); !os.IsNotExist(err) {
+		t.Fatalf("EMO-METADATA.json must not be exported")
 	}
 	if _, err := os.Stat(filepath.Join(dir, "alice/old/1.0.0/package.emo")); !os.IsNotExist(err) {
 		t.Fatalf("yanked sources must not be exported")

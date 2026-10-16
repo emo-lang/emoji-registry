@@ -125,8 +125,8 @@ func archiveStorageKey(pkg *models.Package, version string) string {
 	return fmt.Sprintf("packages/%s/%s/%s/package.emoji", pkg.OwnerScope, pkg.Name, version)
 }
 
-// storeArchive persists the canonical archive and each individual .emo source
-// (protocol A serves the per-file keys).
+// storeArchive persists the canonical archive and each individual source
+// file (protocol A serves the per-file keys).
 func storeArchive(c *gin.Context, pkg *models.Package, version string, result *emoji.Result) error {
 	ctx := c.Request.Context()
 	store := storage.Current()

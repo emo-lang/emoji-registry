@@ -59,9 +59,10 @@ func VersionsAction(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
-// FileAction serves GET /:owner/:name/:version/<path>.emo, including the
-// package.emo manifest. Only .emo sources are reachable; yanked versions
-// answer 404 because protocol A feeds dependency resolution.
+// FileAction serves GET /:owner/:name/:version/<path> for the package's
+// sources — .emo modules (including the package.emo manifest) plus the
+// .c/.h files a native-binding package carries. Yanked versions answer 404
+// because protocol A feeds dependency resolution.
 func FileAction(c *gin.Context) {
 	owner := c.Param("owner")
 	name := c.Param("name")
@@ -76,7 +77,7 @@ func FileAction(c *gin.Context) {
 	cleaned := path.Clean(filepath)
 	if cleaned != filepath || cleaned == "." || path.IsAbs(cleaned) ||
 		cleaned == ".." || strings.HasPrefix(cleaned, "../") ||
-		!strings.HasSuffix(cleaned, ".emo") {
+		!emoji.IsSourceFile(cleaned) {
 		respondNotFound(c)
 		return
 	}

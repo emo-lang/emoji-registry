@@ -13,7 +13,7 @@ Emo 编译器实现在同级仓库(`../emo`)。客户端包机制(manifest、解
 |---|---|
 | `package.emo` manifest 严格固定 schema(`name`、`version`、`targets`、可选的 `link`、`deps`);旧编译器对未知字段报 E5100 | 描述、license、作者、README 等元数据**只存服务端**,经 API 返回——绝不写进 manifest |
 | 版本只有精确 semver(`major.minor.patch`,纯数字),无版本范围;MVS(最小版本选择)解析在客户端完成 | 服务端只需提供版本列表和每版本依赖数据,不需要服务端依赖求解器 |
-| 包 = 纯 `.emo` 源码集合,必须含 `package.emo` | 发布校验简单:manifest 能解析、`name`/`version` 匹配、全是源码文件即可 |
+| 包 = `.emo` 源码集合——c target 绑定包还可携带 `.c`/`.h` 原生源码(T38.2)——必须含 `package.emo` | 发布校验简单:manifest 能解析、`name`/`version` 匹配、全是源码文件即可 |
 | checksum 写入 `package.lock` 并用于客户端内容寻址缓存(`name-version-checksum` 目录) | 服务端必须复现完全一致的 digest 算法,以校验发布并让 lockfile 可验证 |
 | `targets` 字段(`ocaml`、`c`、`wasm`、`typescript`、`beam`、`riscv64`) | 版本记录携带 target 元数据,索引可按 target 过滤 |
 | 作用域命名 `owner/name`;顶级短名(`net`、`http`)保留给官方 stdlib | 所有权模型 = scope 即账号/组织;短名由服务端保留名单硬控制 |
@@ -21,7 +21,8 @@ Emo 编译器实现在同级仓库(`../emo`)。客户端包机制(manifest、解
 
 ### Checksum 算法:一开始就用 SHA-256
 
-内容 digest = **对所有 `.emo` 文件按路径排序后的 `(路径, 内容)` 对做 SHA-256**,连接格式
+内容 digest = **对包的全部源码——每个 `.emo` 文件加上任何 `.c`/`.h` 原生源码——按路径
+排序后的 `(路径, 内容)` 对做 SHA-256**,连接格式
 `path \0 content \0`(与编译器 `Registry.digest` 相同的构造方式,在任何版本发布之前
 从 MD5 升级为 SHA-256)。内容 digest(写进 `package.lock` 的那个)与归档完整性哈希用同一
 算法。没有算法前缀,没有 MD5 兼容路径——编译器侧的修改与本服务同窗口落地。
@@ -41,15 +42,17 @@ foo--json_tools--1.2.0.emoji  (tar.gz)
 ├── package.emo          # manifest;name/version/targets/deps 的唯一权威来源
 ├── json_tools.emo       # 源码
 ├── internal/...         # 私有子树原样保留
+├── shim.c / shim.h      # 可选的原生源码,c target 绑定包编译并链接它们
 ├── README.md            # 可选,仅根部;在包详情页渲染,不参与 digest
 └── EMO-METADATA.json    # 服务端生成:描述/license/作者、逐文件 SHA-256 清单
 ```
 
 不变式:
 
-- **内容 digest 只对 `.emo` 文件计算**;客户端解包时忽略 `EMO-METADATA.json` 与
-  `README.md`,因此解包归档的 digest 永远与 lockfile checksum 一致。(编译器的
-  `collect_files` 只收集 `.emo` 文件,归档里多带 README 对现有客户端是安全的。)
+- **内容 digest 对包的全部源码计算——`.emo` 加 `.c`/`.h`**;客户端解包时忽略
+  `EMO-METADATA.json` 与 `README.md`,因此解包归档的 digest 永远与 lockfile checksum
+  一致。(编译器的 `collect_files` 恰好只收集 `.emo`/`.c`/`.h`,归档里多带 README 对
+  现有客户端是安全的。)
 - `package.emo` 由作者编写,是权威来源;`EMO-METADATA.json` 由服务端生成(类比
   RubyGems 的 `metadata.gz`),绝不回写进 manifest——旧编译器不受影响。
 
@@ -64,7 +67,7 @@ foo--json_tools--1.2.0.emoji  (tar.gz)
 
 ```
 emo publish
-  → 本地校验 manifest、收集 .emo 文件、计算 SHA-256 digest、打 tar.gz
+  → 本地校验 manifest、收集 .emo/.c/.h 源文件、计算 SHA-256 digest、打 tar.gz
   → POST /api/v1/packages   (Authorization: Bearer <token>,body = .emoji 归档)
 ```
 
@@ -126,10 +129,10 @@ Base URL 即 `EMO_REGISTRY` 指向的地址。公开只读端点无需 token。�
 ```
 GET /:owner/:name/versions                  → ["0.1.0", "0.2.0"]   (JSON 数组,不含 yanked)
 GET /:owner/:name/:version/package.emo      → manifest 原文
-GET /:owner/:name/:version/<path>.emo       → 单个源文件
+GET /:owner/:name/:version/<path>           → 单个源文件(.emo、.c、.h)
 ```
 
-协议 A 只提供 `.emo` 源文件——它是编译器的拉包通道,`README.md` 与
+协议 A 只提供包的源文件(`.emo` 加 `.c`/`.h`)——它是编译器的拉包通道,`README.md` 与
 `EMO-METADATA.json` 有意不在此暴露。
 
 这一层可以导出为静态文件树扔到 CDN:`registry:export <dir>`(缺省 `./dist-registry`)
@@ -137,7 +140,7 @@ GET /:owner/:name/:version/<path>.emo       → 单个源文件
 
 ```
 <dir>/<owner>/<name>/versions                     # 与协议 A 响应逐字节一致
-<dir>/<owner>/<name>/<version>/<path>.emo         # 源码,不含 yanked 版本
+<dir>/<owner>/<name>/<version>/<path>             # 源码(.emo/.c/.h),不含 yanked 版本
 <dir>/downloads/<owner>--<name>--<version>.emoji  # 归档,yanked 也导出
 <dir>/index.html                                  # 人肉索引页,不属于协议
 ```
@@ -172,8 +175,8 @@ GET /api/v1/packages/:owner/:name/versions
 }
 ```
 
-- `checksum`——对排序后 `.emo` 文件的 `path\0content\0` 做 SHA-256 的内容 digest,
-  正是客户端写进 `package.lock` 的值。
+- `checksum`——对排序后包源码(`.emo` 加 `.c`/`.h`)的 `path\0content\0` 做 SHA-256
+  的内容 digest,正是客户端写进 `package.lock` 的值。
 - `archive_sha256`——`.emoji` 文件本身的哈希,仅用于下载完整性校验。
 - `targets`——全量列表;按构建 target 过滤是客户端的事。
 - `yanked`——yanked 版本**出现在列表里并打标记**,而不是消失:lockfile 钉住
@@ -288,7 +291,8 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 - 版本不可变 + yank 不删档 → 供应链可审计。
 - 短名保留名单在注册时强制;DB 管理的部分由管理员在 `/admin/reserved` 维护
   (第一个管理员用 `admin:grant <username>` 授予;内置 stdlib 名单编译期固定、只读)。
-- 上传大小限制(纯源码包 10MB 足够);归档内只允许 `.emo` 文件白名单。
+- 上传大小限制(纯源码包 10MB 足够);归档内白名单只允许 `.emo`/`.c`/`.h` 源文件
+  (外加根部 `README.md`)。
 - 限流:发布按 token 用户(30 次/小时),signup/login 与搜索按 IP(10 次/分钟、
   60 次/分钟)。配置了 `REDIS` 时计数器在 Redis,否则进程内固定窗口。
 - 只存 token 哈希;密码 bcrypt。

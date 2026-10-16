@@ -87,7 +87,7 @@ curl -X POST http://127.0.0.1:1905/api/v1/tokens \
 # => {"token":"emo_..."}
 
 # 3. 构造 .emoji 归档——文件名为 <owner>--<name>--<version>.emoji 的 gzip tar,
-#    内含 package.emo 与 .emo 源文件
+#    内含 package.emo 与 .emo/.c/.h 源文件
 mkdir hello && cd hello
 cat > package.emo <<'EOF'
 package {
@@ -152,7 +152,7 @@ emo deps resolve     # 走协议 A;指向任何自托管实例都能工作
 | `DELETE /api/v1/orgs/:name/members/:username` | session 或 basic(组织 owner) | 删成员(最后一个 owner 不可删) |
 | `GET /:owner/:name/versions` | 无 | 协议 A:版本 JSON 数组 |
 | `GET /:owner/:name/:version/package.emo` | 无 | 协议 A:manifest 原文 |
-| `GET /:owner/:name/:version/<path>.emo` | 无 | 协议 A:单个源文件 |
+| `GET /:owner/:name/:version/<path>` | 无 | 协议 A:单个源文件(`.emo`/`.c`/`.h`) |
 
 Web 页面:`/`、`/search`、`/p/:owner/:name`、`/u/:username`、`/signup`、
 `/login`、`/tokens` 与 `/orgs`(需登录)。

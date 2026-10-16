@@ -344,6 +344,93 @@ func TestFullRegistryFlow(t *testing.T) {
 	}
 }
 
+func TestPublishNativePackage(t *testing.T) {
+	r := setupTest(t)
+
+	// Seed the account at the repo level: the signup endpoint's per-IP rate
+	// limit is a process-wide budget the other tests already exhaust.
+	user, err := repo.CreateFrom[models.User](sql.H{
+		"username": "alice", "email": "alice@example.com", "password_digest": "unused",
+	})
+	if err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+	plain := middlewares.TokenPrefix + strings.Repeat("ab", 24)
+	if _, err := repo.CreateFrom[models.APIToken](sql.H{
+		"user_id": user.ID, "name": "cli",
+		"token_hash": middlewares.TokenHash(plain), "scopes": "push",
+	}); err != nil {
+		t.Fatalf("create token: %v", err)
+	}
+	token := plain
+
+	// The T38.2 sqlite3 shape: a native-binding package carries its shim
+	// beside the .emo modules.
+	manifest := "package {\n  name = \"alice/db\"\n  version = \"1.0.0\"\n  targets = [\"c\"]\n  link = [\"sqlite3\"]\n}\n"
+	sources := map[string][]byte{
+		"package.emo":      []byte(manifest),
+		"db.emo":           []byte("let open = 1"),
+		"internal/ffi.emo": []byte("foreign def raw_open"),
+		"shim.c":           []byte("#include \"shim.h\""),
+		"shim.h":           []byte("#pragma once"),
+	}
+	archive, err := emoji.BuildArchive(sources)
+	if err != nil {
+		t.Fatalf("build archive: %v", err)
+	}
+
+	resp := do(t, r, http.MethodPost, "/api/v1/packages", archive, bearer(token))
+	if resp.Code != http.StatusCreated {
+		t.Fatalf("publish native package: expected 201, got %d: %s", resp.Code, resp.Body.String())
+	}
+
+	var published struct {
+		Checksum string `json:"checksum"`
+	}
+	decodeJSON(t, resp, &published)
+
+	// The advertised checksum is the content digest over .emo plus .c/.h —
+	// exactly what the client computes when it collects the package's files.
+	if want := emoji.Digest(sources); published.Checksum != want {
+		t.Fatalf("checksum = %q, want the .emo+.c/.h digest %q", published.Checksum, want)
+	}
+
+	// B.3: the downloaded archive carries the native sources, and unpacking
+	// it the way the client does reproduces the advertised checksum.
+	resp = do(t, r, http.MethodGet, "/downloads/alice--db--1.0.0.emoji", nil, nil)
+	if resp.Code != http.StatusOK {
+		t.Fatalf("download: expected 200, got %d", resp.Code)
+	}
+	stored, err := emoji.Unpack(resp.Body.Bytes())
+	if err != nil {
+		t.Fatalf("unpack download: %v", err)
+	}
+	for name := range sources {
+		if _, ok := stored[name]; !ok {
+			t.Fatalf("downloaded archive lost %s", name)
+		}
+	}
+	content := map[string][]byte{}
+	for name, data := range stored {
+		if emoji.IsSourceFile(name) {
+			content[name] = data
+		}
+	}
+	if got := emoji.Digest(content); got != published.Checksum {
+		t.Fatalf("client-side unpack digest = %q, want %q", got, published.Checksum)
+	}
+
+	// Protocol A serves the native sources too; README.md stays unserved.
+	resp = do(t, r, http.MethodGet, "/alice/db/1.0.0/shim.c", nil, nil)
+	if resp.Code != http.StatusOK || !strings.Contains(resp.Body.String(), "#include") {
+		t.Fatalf("protocol A native source: %d %s", resp.Code, resp.Body.String())
+	}
+	resp = do(t, r, http.MethodGet, "/alice/db/1.0.0/README.md", nil, nil)
+	if resp.Code != http.StatusNotFound {
+		t.Fatalf("protocol A must not serve README.md, got %d", resp.Code)
+	}
+}
+
 func TestAuthorizationRules(t *testing.T) {
 	r := setupTest(t)
 

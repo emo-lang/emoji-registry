@@ -15,7 +15,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 
 	"github.com/daqing/airway/lib/repo"
 	"github.com/daqing/airway/lib/sql"
@@ -95,7 +94,7 @@ func Run(dir string) (Stats, error) {
 			stats.Versions++
 
 			for name, content := range files {
-				if !strings.HasSuffix(name, ".emo") {
+				if !emoji.IsSourceFile(name) {
 					continue
 				}
 				if err := writeFile(filepath.Join(dir, pkg.OwnerScope, pkg.Name, v.Version, name), content); err != nil {

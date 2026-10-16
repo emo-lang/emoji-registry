@@ -100,7 +100,8 @@ curl -X POST http://127.0.0.1:1905/api/v1/tokens \
 # => {"token":"emo_..."}
 
 # 3. Build a .emoji archive — a gzip tar whose name is
-#    <owner>--<name>--<version>.emoji, containing package.emo + .emo sources
+#    <owner>--<name>--<version>.emoji, containing package.emo + the
+#    .emo/.c/.h sources
 mkdir hello && cd hello
 cat > package.emo <<'EOF'
 package {
@@ -168,7 +169,7 @@ real HTTP status. Full request/response schemas: docs/design.md §5.
 | `DELETE /api/v1/orgs/:name/members/:username` | session or basic (org owner) | remove a member (last owner protected) |
 | `GET /:owner/:name/versions` | — | protocol A: JSON array of versions |
 | `GET /:owner/:name/:version/package.emo` | — | protocol A: manifest source |
-| `GET /:owner/:name/:version/<path>.emo` | — | protocol A: individual source file |
+| `GET /:owner/:name/:version/<path>` | — | protocol A: individual source file (`.emo`/`.c`/`.h`) |
 
 Web pages: `/`, `/search`, `/p/:owner/:name`, `/u/:username`, `/signup`,
 `/login`, `/tokens` and `/orgs` (login required).

@@ -31,7 +31,8 @@ type Result struct {
 	Digest        string
 	ArchiveSHA256 string
 	Archive       []byte
-	// Files holds the .emo sources only (no EMO-METADATA.json).
+	// Files holds the package's sources — .emo modules plus the .c/.h files a
+	// native-binding package carries (no EMO-METADATA.json).
 	Files map[string][]byte
 	// Readme holds the root README.md content, nil when absent.
 	Readme []byte
@@ -87,8 +88,17 @@ func Unpack(data []byte) (map[string][]byte, error) {
 	return files, nil
 }
 
+// IsSourceFile reports whether name is package content that feeds the
+// content digest: an .emo module, or the .c/.h sources a native-binding
+// package carries (the compiler's collect_files gathers the same set).
+func IsSourceFile(name string) bool {
+	return strings.HasSuffix(name, ".emo") ||
+		strings.HasSuffix(name, ".c") ||
+		strings.HasSuffix(name, ".h")
+}
+
 // Validate enforces the archive content rules: package.emo must be present,
-// every file must be an .emo source (the only exceptions are a root-level
+// every file must be a package source (the only exceptions are a root-level
 // EMO-METADATA.json and a root-level README.md), and the total size must stay
 // within the limit.
 func Validate(files map[string][]byte) error {
@@ -98,12 +108,12 @@ func Validate(files map[string][]byte) error {
 
 	var total int64
 	for name, content := range files {
-		if !strings.HasSuffix(name, ".emo") {
+		if !IsSourceFile(name) {
 			if name == MetadataFileName || name == ReadmeFileName {
 				total += int64(len(content))
 				continue
 			}
-			return fmt.Errorf("file %q is not allowed: only .emo sources (plus a root README.md) are permitted", name)
+			return fmt.Errorf("file %q is not allowed: only .emo sources and .c/.h native sources (plus a root README.md) are permitted", name)
 		}
 		total += int64(len(content))
 	}
@@ -172,7 +182,7 @@ func ProcessUpload(data []byte) (*Result, error) {
 
 	sources := map[string][]byte{}
 	for name, content := range files {
-		if strings.HasSuffix(name, ".emo") {
+		if IsSourceFile(name) {
 			sources[name] = content
 		}
 	}

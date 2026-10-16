@@ -135,9 +135,23 @@ func TestValidate(t *testing.T) {
 	}
 
 	for name, files := range map[string]map[string][]byte{
+		"root .c":   {"package.emo": []byte("x"), "shim.c": []byte("x")},
+		"root .h":   {"package.emo": []byte("x"), "shim.h": []byte("x")},
+		"nested .c": {"package.emo": []byte("x"), "internal/shim.c": []byte("x")},
+		"nested .h": {"package.emo": []byte("x"), "internal/shim.h": []byte("x")},
+	} {
+		if err := Validate(files); err != nil {
+			t.Fatalf("native source (%s) should be allowed: %v", name, err)
+		}
+	}
+
+	for name, files := range map[string]map[string][]byte{
 		"nested README":  {"package.emo": []byte("x"), "docs/README.md": []byte("x")},
 		"wrong case":     {"package.emo": []byte("x"), "README.MD": []byte("x")},
 		"other markdown": {"package.emo": []byte("x"), "CHANGELOG.md": []byte("x")},
+		"object file":    {"package.emo": []byte("x"), "shim.o": []byte("x")},
+		"c++ source":     {"package.emo": []byte("x"), "shim.cc": []byte("x")},
+		"uppercase .C":   {"package.emo": []byte("x"), "shim.C": []byte("x")},
 	} {
 		if err := Validate(files); err == nil {
 			t.Fatalf("expected %s to be rejected", name)
@@ -210,6 +224,69 @@ func TestProcessUpload(t *testing.T) {
 	delete(stored, MetadataFileName)
 	if Digest(stored) != result.Digest {
 		t.Fatalf("digest of unpacked archive must match the published digest")
+	}
+}
+
+func TestProcessUploadWithNativeSources(t *testing.T) {
+	// The T38.2 sqlite3 shape: .c/.h native sources ride beside the .emo
+	// modules, feed the content digest, and land in the stored archive.
+	files := map[string][]byte{
+		"package.emo":        []byte("package {\n  name = \"acme/db\"\n  version = \"0.1.0\"\n  targets = [\"c\"]\n  link = [\"sqlite3\"]\n}\n"),
+		"db.emo":             []byte("let open = 1"),
+		"internal/ffi.emo":   []byte("foreign def raw_open"),
+		"emo_acme_db_shim.c": []byte("#include \"emo_acme_db_shim.h\""),
+		"emo_acme_db_shim.h": []byte("#pragma once"),
+	}
+
+	archive, err := BuildArchive(files)
+	if err != nil {
+		t.Fatalf("build: %v", err)
+	}
+
+	result, err := ProcessUpload(archive)
+	if err != nil {
+		t.Fatalf("process: %v", err)
+	}
+
+	if result.Digest != Digest(files) {
+		t.Fatalf("digest must cover the .c/.h sources")
+	}
+	if _, ok := result.Files["emo_acme_db_shim.c"]; !ok {
+		t.Fatalf("Files lost the native source: %#v", result.Files)
+	}
+
+	stored, err := Unpack(result.Archive)
+	if err != nil {
+		t.Fatalf("unpack stored archive: %v", err)
+	}
+	for name := range files {
+		if _, ok := stored[name]; !ok {
+			t.Fatalf("stored archive lost %s", name)
+		}
+	}
+
+	var meta struct {
+		Files map[string]string `json:"files"`
+	}
+	if err := json.Unmarshal(stored[MetadataFileName], &meta); err != nil {
+		t.Fatalf("parse metadata: %v", err)
+	}
+	if meta.Files["emo_acme_db_shim.c"] != SHA256Hex(files["emo_acme_db_shim.c"]) {
+		t.Fatalf("metadata missing the .c hash: %v", meta.Files)
+	}
+
+	// A native source is package content: dropping it must change the digest.
+	delete(files, "emo_acme_db_shim.c")
+	withoutNative, err := BuildArchive(files)
+	if err != nil {
+		t.Fatalf("build: %v", err)
+	}
+	resultWithout, err := ProcessUpload(withoutNative)
+	if err != nil {
+		t.Fatalf("process without native: %v", err)
+	}
+	if resultWithout.Digest == result.Digest {
+		t.Fatalf("dropping a .c file must change the digest")
 	}
 }
 
