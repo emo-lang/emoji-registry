@@ -17,8 +17,12 @@ Emo 编译器所依赖的通信协议定义在
   组织是*共享* scope——成员都能以组织 scope 发布、yank、改元信息,owner 管理成员;
   用户名与组织名共用一个命名空间
 - 短名保留名单存在 `reserved_names` 表(启动时从 stdlib 名单播种),另有硬编码兜底;
-  管理员在 `/admin/reserved` 维护 DB 名单——第一个管理员用
-  `go run . admin:grant <username>` 授予
+  管理员在 `/admin/reserved` 维护 DB 名单
+- 管理后台 `/admin`:列出全部已发布的包(含私有包),按创建时间倒序;支持强制删除
+  (purge)——输入 `I want to purge this package <owner>/<name>` 确认后,从数据库与
+  存储中整体移除该包;另可管理保留名单。可用 `.env` 里的
+  `ADMIN_USERNAME`/`ADMIN_PASSWORD` 在 `/admin/login` 登录,或用
+  `go run . admin:grant <username>` 提升站点账号
 - 发布:上传 `.emoji` 归档(gzip tar),服务端校验 manifest、计算与编译器一致的
   SHA-256 内容 digest、版本不可变、保留 stdlib 名字
 - Yank:软删除——被 yank 的版本从解析索引中移除,但归档仍可下载,不破坏
@@ -155,7 +159,7 @@ emo deps resolve     # 走协议 A;指向任何自托管实例都能工作
 | `GET /:owner/:name/:version/<path>` | 无 | 协议 A:单个源文件(`.emo`/`.c`/`.h`) |
 
 Web 页面:`/`、`/search`、`/p/:owner/:name`、`/u/:username`、`/signup`、
-`/login`、`/tokens` 与 `/orgs`(需登录)。
+`/login`、`/tokens`、`/orgs`(需登录)与 `/admin`(仅管理员)。
 
 ## 开发
 
@@ -230,19 +234,28 @@ docker run -d --name emo-registry -p 1905:1905 \
 | `STORAGE_DRIVER` | 否 | `local`(默认)、`s3`、`r2`、`cos`;SeaweedFS 用 `s3` + `STORAGE_ENDPOINT` 接入 |
 | `URL_PREFIX` | 否 | 在代理后以子路径提供服务时设置,如 `/registry` |
 | `LISTEN` | 否 | 默认 `127.0.0.1:1905`;Docker 镜像里为 `:1905` |
+| `ADMIN_USERNAME`/`ADMIN_PASSWORD` | 否 | 两者都设置时,可用它们在 `/admin/login` 登录;任一改动会使所有已登录的管理员会话失效 |
 
 多副本部署必须配置 `REDIS`——否则每个副本各自持有独立的限流配额和
 下载计数。
 
-### 2. 创建第一个管理员
+### 2. 登录管理后台
 
-授予管理员没有 Web 入口,使用 CLI:
+管理后台 `/admin` 列出全部已发布的包——私有包也在内——按创建时间倒序,
+并在 `/admin/reserved` 管理保留的顶级短名(`net`、`http` 等)。每行提供
+"Force delete"操作:精确输入 `I want to purge this package <owner>/<name>`
+确认后,该包的全部版本、下载统计与存储文件将被彻底删除,不可恢复。
+有两种登录方式:
 
-```bash
-docker exec emo-registry /app/app admin:grant <用户名>
-```
+- 在环境(`.env`)里设置 `ADMIN_USERNAME`/`ADMIN_PASSWORD`,然后在
+  `/admin/login` 登录。
+- 提升一个站点账号,用它的常规登录:
 
-管理员在 `/admin/reserved` 管理保留的顶级短名(`net`、`http` 等)。
+  ```bash
+  docker exec emo-registry /app/app admin:grant <用户名>
+  ```
+
+未配置凭据时 `/admin/login` 返回 404,该登录入口保持不可见。
 
 ### 3. 内部代码保持私有
 

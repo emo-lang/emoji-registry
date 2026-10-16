@@ -22,7 +22,13 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   manage members. Usernames and org names share one namespace
 - Reserved short names live in the `reserved_names` table (seeded from the
   stdlib list at boot) plus a hardcoded fallback; admins manage the DB list at
-  `/admin/reserved` — grant the first admin with `go run . admin:grant <username>`
+  `/admin/reserved`
+- Admin console at `/admin`: every published package (private ones included)
+  listed newest first, plus reserved-name management and a force-delete
+  (purge) behind a typed confirmation that removes a package from the
+  database and storage entirely. Sign in either with the
+  `ADMIN_USERNAME`/`ADMIN_PASSWORD` credentials at `/admin/login`, or promote a
+  site account with `go run . admin:grant <username>`
 - Publishing: upload a `.emoji` archive (gzip tar), server-side manifest
   validation, SHA-256 content digest shared with the compiler, immutable
   versions, reserved stdlib names
@@ -172,7 +178,7 @@ real HTTP status. Full request/response schemas: docs/design.md §5.
 | `GET /:owner/:name/:version/<path>` | — | protocol A: individual source file (`.emo`/`.c`/`.h`) |
 
 Web pages: `/`, `/search`, `/p/:owner/:name`, `/u/:username`, `/signup`,
-`/login`, `/tokens` and `/orgs` (login required).
+`/login`, `/tokens`, `/orgs` (login required) and `/admin` (admin only).
 
 ## Development
 
@@ -247,20 +253,30 @@ Environment variables (see `.env.example` for the full list):
 | `STORAGE_DRIVER` | no | `local` (default), `s3`, `r2`, `cos`; SeaweedFS works via `s3` + `STORAGE_ENDPOINT` |
 | `URL_PREFIX` | no | set when serving under a sub-path behind a proxy, e.g. `/registry` |
 | `LISTEN` | no | defaults to `127.0.0.1:1905`; the Docker image sets `:1905` |
+| `ADMIN_USERNAME`/`ADMIN_PASSWORD` | no | when both are set, `/admin/login` signs in with them; rotating either signs out every outstanding admin session |
 
 Multi-replica deployments need `REDIS` — otherwise each replica has its own
 rate-limit budgets and download counters.
 
-### 2. Create the first admin
+### 2. Sign in to the admin console
 
-There is no web UI for granting admin. Use the CLI:
+The admin console at `/admin` lists every published package — private ones
+included — newest first, and manages the reserved top-level names (`net`,
+`http`, …) at `/admin/reserved`. Each row offers a force delete: typing
+`I want to purge this package <owner>/<name>` exactly removes the package —
+every version, its download counts and all stored files; there is no undo.
+There are two ways in:
 
-```bash
-docker exec emo-registry /app/app admin:grant <username>
-```
+- Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in the environment (`.env`), then
+  sign in at `/admin/login`.
+- Promote a site account and use its normal login:
 
-Admins manage the reserved top-level names (`net`, `http`, …) at
-`/admin/reserved`.
+  ```bash
+  docker exec emo-registry /app/app admin:grant <username>
+  ```
+
+Without configured credentials `/admin/login` answers 404, so the env
+sign-in path stays invisible.
 
 ### 3. Keep internal code internal
 

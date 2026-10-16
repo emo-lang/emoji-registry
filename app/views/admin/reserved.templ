@@ -10,6 +10,7 @@ import (
 templ Reserved(username string, adminFlag bool, rows []*models.ReservedName, builtin []string, err string) {
 	@layouts.Base("Admin — Reserved names", username, adminFlag) {
 		<main class="er-page">
+			@SubNav("reserved", username == "")
 			<style>
 				.res-row { display: flex; gap: 14px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
 				.res-row .name { font-family: monospace; font-weight: 650; }

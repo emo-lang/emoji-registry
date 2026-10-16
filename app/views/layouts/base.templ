@@ -187,12 +187,15 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 						<a href="/orgs">Orgs</a>
 						<a href="/tokens">Tokens</a>
 						if admin {
-							<a href="/admin/reserved">Admin</a>
+							<a href="/admin">Admin</a>
 						}
 						<form class="inline" method="post" action="/logout">
 							<button type="submit">Logout</button>
 						</form>
 					} else {
+						if admin {
+							<a href="/admin">Admin</a>
+						}
 						<a href="/login">Login</a>
 						<a href="/signup">Signup</a>
 					}

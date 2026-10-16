@@ -11,21 +11,10 @@ import (
 	"github.com/daqing/airway/lib/sql"
 	"github.com/gin-gonic/gin"
 
-	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	"github.com/emo-lang/emoji-registry/app/views/admin"
 )
-
-// Routes registers the admin pages under /admin (web session + admin only).
-func Routes(r *gin.Engine) {
-	group := r.Group("/admin", middlewares.RequireAdmin())
-	{
-		group.GET("/reserved", ReservedAction)
-		group.POST("/reserved", AddReservedAction)
-		group.POST("/reserved/:id/delete", DeleteReservedAction)
-	}
-}
 
 // ReservedAction lists the managed reserved names plus the read-only
 // built-in list.
@@ -76,7 +65,7 @@ func DeleteReservedAction(c *gin.Context) {
 }
 
 func renderReserved(c *gin.Context, errMsg string, status int) {
-	user := middlewares.CurrentUser(c)
+	username, adminFlag := adminViewer(c)
 
 	rows, err := repo.FindAll[models.ReservedName]()
 	if err != nil {
@@ -85,5 +74,5 @@ func renderReserved(c *gin.Context, errMsg string, status int) {
 	}
 	sort.Slice(rows, func(i, j int) bool { return rows[i].Name < rows[j].Name })
 
-	render.HTMLStatus(c, status, admin.Reserved(user.Username, user.Admin, rows, emoji.BuiltinReservedNames(), errMsg))
+	render.HTMLStatus(c, status, admin.Reserved(username, adminFlag, rows, emoji.BuiltinReservedNames(), errMsg))
 }

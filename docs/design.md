@@ -13,7 +13,7 @@ this service is the missing server side.
 
 | Emo characteristic | Consequence for the registry |
 |---|---|
-| `package.emo` manifest has a fixed schema (`name`, `version`, `targets`, the optional `link`, and `deps`); old compilers reject unknown fields with E5100 | Metadata such as description, license, authors, README lives **only on the server**, returned via API — never written into the manifest |
+| `package.emo` manifest has a fixed schema (`name`, `version`, `targets`, the optional `link` and `registry`, and `deps`); old compilers reject unknown fields with E5100 | Metadata such as description, license, authors, README lives **only on the server**, returned via API — never written into the manifest |
 | Versions are exact semver (`major.minor.patch`, digits only); no version ranges; MVS (Minimal Version Selection) resolution happens client-side | The server only needs to serve a version list and per-version dependency data; no server-side dependency solver |
 | A package is a set of plain `.emo` source files — plus the `.c`/`.h` native sources a c-target binding carries (T38.2) — and must contain `package.emo` | Publishing validation is simple: manifest must parse, `name`/`version` must match, sources only |
 | Checksums feed `package.lock` and the content-addressed client cache (`name-version-checksum` directories) | The server must reproduce the exact client digest algorithm to validate publishes and to make lockfiles verifiable |
@@ -325,8 +325,19 @@ This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
 
 - Immutable versions + yank-does-not-delete → auditable supply chain.
 - Reserved short-name list enforced at registration; the DB-managed list is edited
-  by admins at `/admin/reserved` (the first admin is granted with
-  `admin:grant <username>`; the built-in stdlib list is compiled in and read-only).
+  by admins at `/admin/reserved` (the built-in stdlib list is compiled in and
+  read-only).
+- Admin console at `/admin` (all packages listed newest first, private included;
+  non-admins get 404). An admin is either a site account promoted with
+  `admin:grant <username>`, or the `ADMIN_USERNAME`/`ADMIN_PASSWORD` credentials
+  signed in at `/admin/login` — the issued cookie is HMAC-signed with a key
+  derived from those credentials, so rotating either invalidates every session.
+- Force delete (purge): typing "I want to purge this package <owner>/<name>"
+  (exact match, re-verified server-side) removes the package's download
+  aggregates, versions, the package row and every stored object — file names
+  are enumerated from the canonical archive itself, since the storage layer
+  has no listing. There is no undo; this is the only path that deletes
+  published content (yank keeps archives downloadable).
 - Upload size limit (10 MB is generous for source-only packages); only `.emo`/`.c`/`.h`
   sources (plus a root README.md) are whitelisted inside archives.
 - Rate limiting: per-token-user on publish (30/hour), per-IP on signup/login
