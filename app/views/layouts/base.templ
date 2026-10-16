@@ -59,7 +59,9 @@ templ Base(title string, username string, admin bool, description ...string) {
 					background: var(--er-bg); color: var(--er-ink);
 				}
 				.topnav nav { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 14px; }
-				.topnav .nav-user { color: var(--er-muted); }
+				.topnav .nav-user { /*color: var(--er-muted);*/ }
+				.topnav .nav-user:hover { color: var(--er-accent); }
+				.topnav a:hover { color: var(--er-accent); }
 				.topnav form.inline { display: inline; margin: 0; }
 				.topnav form.inline button {
 					background: none; border: none; padding: 0; cursor: pointer;
@@ -128,7 +130,7 @@ templ Base(title string, username string, admin bool, description ...string) {
 				</form>
 				<nav>
 					if username != "" {
-						<span class="nav-user">{ username }</span>
+						<a class="nav-user" href={ templ.SafeURL("/u/" + username) }>{ username }</a>
 						<a href="/orgs">Orgs</a>
 						<a href="/tokens">Tokens</a>
 						if admin {

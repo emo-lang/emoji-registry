@@ -44,7 +44,8 @@ Emo 编译器所依赖的通信协议定义在
   协议 A 文件树加归档目录——nginx/CDN/S3 静态托管后把 `EMO_REGISTRY` 指过去即可
 - README 支持:归档可携带根部 `README.md`(不参与 digest),在包详情页渲染为
   消毒后的 HTML
-- Web UI:首页(最新发布/下载最多)、分页搜索、包详情页、注册登录、token 与组织管理
+- Web UI:首页(最新发布/下载最多)、分页搜索、包详情页、用户主页
+  (`/u/:username`,列出该账号已上传的 emoji 包)、注册登录、token 与组织管理
 
 ## 快速开始
 
@@ -153,8 +154,8 @@ emo deps resolve     # 走协议 A;指向任何自托管实例都能工作
 | `GET /:owner/:name/:version/package.emo` | 无 | 协议 A:manifest 原文 |
 | `GET /:owner/:name/:version/<path>.emo` | 无 | 协议 A:单个源文件 |
 
-Web 页面:`/`、`/search`、`/p/:owner/:name`、`/signup`、`/login`、
-`/tokens` 与 `/orgs`(需登录)。
+Web 页面:`/`、`/search`、`/p/:owner/:name`、`/u/:username`、`/signup`、
+`/login`、`/tokens` 与 `/orgs`(需登录)。
 
 ## 开发
 

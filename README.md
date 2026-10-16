@@ -55,8 +55,9 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
 - README support: archives may ship a root `README.md` (never digested),
   rendered as sanitized HTML on the package page
 - Web UI: home page with recent and most-downloaded packages, paginated
-  search, package detail pages, signup/login, token and organization
-  management
+  search, package detail pages, user profile pages (`/u/:username`, listing
+  the packages an account has published), signup/login, token and
+  organization management
 
 ## Quick start
 
@@ -169,8 +170,8 @@ real HTTP status. Full request/response schemas: docs/design.md §5.
 | `GET /:owner/:name/:version/package.emo` | — | protocol A: manifest source |
 | `GET /:owner/:name/:version/<path>.emo` | — | protocol A: individual source file |
 
-Web pages: `/`, `/search`, `/p/:owner/:name`, `/signup`, `/login`,
-`/tokens` and `/orgs` (login required).
+Web pages: `/`, `/search`, `/p/:owner/:name`, `/u/:username`, `/signup`,
+`/login`, `/tokens` and `/orgs` (login required).
 
 ## Development
 

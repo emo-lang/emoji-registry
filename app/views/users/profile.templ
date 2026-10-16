@@ -1,0 +1,47 @@
+package users
+
+import (
+	"strconv"
+
+	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+	"github.com/emo-lang/emoji-registry/app/views/packages"
+)
+
+// Profile renders a user's public profile page: the account handle and the
+// packages it has published. viewerName/admin describe the visitor (empty and
+// false when anonymous) and drive the shared top navigation.
+templ Profile(viewerName string, admin bool, profileUser *models.User, pkgs []*models.Package) {
+	@layouts.Base(profileUser.Username, viewerName, admin, "Packages published by "+profileUser.Username) {
+		<main class="er-page">
+			@packages.CardStyles()
+			<style>
+				.profile-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+				.profile-head h1 { margin: 0; }
+				.profile-head .handle { color: var(--er-muted); font-size: 14px; }
+				.profile-section { margin-top: 28px; }
+				.profile-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }
+			</style>
+			<header class="profile-head">
+				<h1>{ profileUser.Username }</h1>
+				<span class="handle">{ pkgCount(len(pkgs)) }</span>
+			</header>
+			<section class="profile-section">
+				<h2>Packages</h2>
+				if len(pkgs) == 0 {
+					<p class="er-muted">This account hasn't published any packages yet.</p>
+				}
+				for _, pkg := range pkgs {
+					@packages.Card(pkg)
+				}
+			</section>
+		</main>
+	}
+}
+
+func pkgCount(n int) string {
+	if n == 1 {
+		return "1 package"
+	}
+	return strconv.Itoa(n) + " packages"
+}
