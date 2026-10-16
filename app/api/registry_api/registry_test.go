@@ -137,7 +137,7 @@ func bearer(token string) map[string]string {
 func buildPackage(t *testing.T, fullName, version string, sources map[string]string) []byte {
 	t.Helper()
 
-	manifest := fmt.Sprintf("package {\n  name = %q\n  version = %q\n  targets = [\"native\"]\n}\n", fullName, version)
+	manifest := fmt.Sprintf("package {\n  name = %q\n  version = %q\n  targets = [\"ocaml\", \"c\"]\n}\n", fullName, version)
 
 	files := map[string][]byte{"package.emo": []byte(manifest)}
 	for name, content := range sources {

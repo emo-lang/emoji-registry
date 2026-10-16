@@ -80,7 +80,7 @@ templ Show(username string, admin bool, pkg *models.Package, versions []*models.
 			if latest != nil {
 				<section class="pkg-section">
 					<h2>Install</h2>
-					<pre class="er-code">{ "# package.emo\ndeps {\n  " + pkg.FullName() + " = \"" + latest.Version + "\"\n}" }</pre>
+					<pre class="er-code">{ "// package.emo\ndeps {\n  \"" + pkg.FullName() + "\" = \"" + latest.Version + "\"\n}" }</pre>
 					<pre class="er-code">{ "require \"" + pkg.FullName() + "\"" }</pre>
 					<p>
 						<a class="er-btn" href={ templ.SafeURL("/downloads/" + pkg.OwnerScope + "--" + pkg.Name + "--" + latest.Version + ".emoji") }>

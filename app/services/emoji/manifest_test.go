@@ -8,12 +8,13 @@ import (
 func TestParseManifestFull(t *testing.T) {
 	src := `
 package {
-  name = "acme/json_tools"      # a comment
+  name = "acme/json_tools"      // a comment
   version = "0.1.0"
-  targets = ["native", "wasm"]
+  targets = ["ocaml", "wasm"]
+  link = ["sqlite3"]
   deps {
-    json = "2.3.1"
-    http = "1.4.2"
+    "json" = "2.3.1"
+    "http" = "1.4.2"
   }
 }
 `
@@ -28,8 +29,11 @@ package {
 	if m.Owner() != "acme" || m.ShortName() != "json_tools" {
 		t.Fatalf("unexpected name split: %q %q", m.Owner(), m.ShortName())
 	}
-	if len(m.Targets) != 2 || m.Targets[0] != "native" || m.Targets[1] != "wasm" {
+	if len(m.Targets) != 2 || m.Targets[0] != "ocaml" || m.Targets[1] != "wasm" {
 		t.Fatalf("unexpected targets: %#v", m.Targets)
+	}
+	if len(m.Link) != 1 || m.Link[0] != "sqlite3" {
+		t.Fatalf("unexpected link: %#v", m.Link)
 	}
 	if m.Deps["json"] != "2.3.1" || m.Deps["http"] != "1.4.2" {
 		t.Fatalf("unexpected deps: %#v", m.Deps)
@@ -60,7 +64,10 @@ func TestParseManifestErrors(t *testing.T) {
 		{"bad version", `package { name = "a/b" version = "1.0" }`, "invalid version"},
 		{"prerelease version", `package { name = "a/b" version = "1.0.0-rc1" }`, "invalid version"},
 		{"unknown target", `package { name = "a/b" version = "1.0.0" targets = ["jvm"] }`, "unknown target"},
-		{"range dep version", `package { name = "a/b" version = "1.0.0" deps { json = "^2.3.1" } }`, "invalid dependency version"},
+		{"hash comment", "package { name = \"a/b\" # c\n version = \"1.0.0\" }", "unexpected character"},
+		{"bad link library", `package { name = "a/b" version = "1.0.0" targets = ["c"] link = ["-lm"] }`, "invalid link library"},
+		{"dep name not a string", `package { name = "a/b" version = "1.0.0" deps { json = "2.3.1" } }`, "expected a dependency name string"},
+		{"range dep version", `package { name = "a/b" version = "1.0.0" deps { "json" = "^2.3.1" } }`, "invalid dependency version"},
 		{"unterminated", `package { name = "a/b"`, "unexpected end of input"},
 		{"not a string", `package { name = 5 version = "1.0.0" }`, "unexpected character"},
 		{"trailing content", `package { name = "a/b" version = "1.0.0" } extra`, "unexpected content"},

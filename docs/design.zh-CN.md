@@ -11,11 +11,11 @@ Emo 编译器实现在同级仓库(`../emo`)。客户端包机制(manifest、解
 
 | Emo 的特点 | 对 registry 的影响 |
 |---|---|
-| `package.emo` manifest 严格固定 4 个字段(`name`、`version`、`targets`、`deps`);旧编译器对未知字段报 E5100 | 描述、license、作者、README 等元数据**只存服务端**,经 API 返回——绝不写进 manifest |
+| `package.emo` manifest 严格固定 schema(`name`、`version`、`targets`、可选的 `link`、`deps`);旧编译器对未知字段报 E5100 | 描述、license、作者、README 等元数据**只存服务端**,经 API 返回——绝不写进 manifest |
 | 版本只有精确 semver(`major.minor.patch`,纯数字),无版本范围;MVS(最小版本选择)解析在客户端完成 | 服务端只需提供版本列表和每版本依赖数据,不需要服务端依赖求解器 |
 | 包 = 纯 `.emo` 源码集合,必须含 `package.emo` | 发布校验简单:manifest 能解析、`name`/`version` 匹配、全是源码文件即可 |
 | checksum 写入 `package.lock` 并用于客户端内容寻址缓存(`name-version-checksum` 目录) | 服务端必须复现完全一致的 digest 算法,以校验发布并让 lockfile 可验证 |
-| `targets` 字段(`native`、`wasm`、`typescript`、`beam`、`riscv64`) | 版本记录携带 target 元数据,索引可按 target 过滤 |
+| `targets` 字段(`ocaml`、`c`、`wasm`、`typescript`、`beam`、`riscv64`) | 版本记录携带 target 元数据,索引可按 target 过滤 |
 | 作用域命名 `owner/name`;顶级短名(`net`、`http`)保留给官方 stdlib | 所有权模型 = scope 即账号/组织;短名由服务端保留名单硬控制 |
 | registry 端点由 `EMO_REGISTRY` 环境变量配置;私有 registry 是一等场景 | 协议必须简单到可自建,甚至可以作为静态文件树托管 |
 
@@ -164,7 +164,7 @@ GET /api/v1/packages/:owner/:name/versions
       "version": "1.2.0",
       "checksum": "9f2c...ab",
       "archive_sha256": "4d7e...01",
-      "targets": ["native", "wasm"],
+      "targets": ["ocaml", "wasm"],
       "yanked": false,
       "published_at": "2026-09-30T12:00:00Z"
     }
@@ -264,7 +264,7 @@ description、license、homepage、repository 不在归档里,也不在发布请
 PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 ```
 
-这既保持 manifest 4 字段的纯净,也让 `emo publish` 保持极简。
+这既保持 manifest 固定 schema 的纯净,也让 `emo publish` 保持极简。
 
 ## 6. 服务端数据模型
 

@@ -13,11 +13,11 @@ this service is the missing server side.
 
 | Emo characteristic | Consequence for the registry |
 |---|---|
-| `package.emo` manifest has a fixed schema of exactly 4 fields (`name`, `version`, `targets`, `deps`); old compilers reject unknown fields with E5100 | Metadata such as description, license, authors, README lives **only on the server**, returned via API — never written into the manifest |
+| `package.emo` manifest has a fixed schema (`name`, `version`, `targets`, the optional `link`, and `deps`); old compilers reject unknown fields with E5100 | Metadata such as description, license, authors, README lives **only on the server**, returned via API — never written into the manifest |
 | Versions are exact semver (`major.minor.patch`, digits only); no version ranges; MVS (Minimal Version Selection) resolution happens client-side | The server only needs to serve a version list and per-version dependency data; no server-side dependency solver |
 | A package is a set of plain `.emo` source files and must contain `package.emo` | Publishing validation is simple: manifest must parse, `name`/`version` must match, sources only |
 | Checksums feed `package.lock` and the content-addressed client cache (`name-version-checksum` directories) | The server must reproduce the exact client digest algorithm to validate publishes and to make lockfiles verifiable |
-| `targets` field (`native`, `wasm`, `typescript`, `beam`, `riscv64`) | Version records carry target metadata; indexes can be filtered by target |
+| `targets` field (`ocaml`, `c`, `wasm`, `typescript`, `beam`, `riscv64`) | Version records carry target metadata; indexes can be filtered by target |
 | Scoped naming `owner/name`; top-level short names (`net`, `http`) reserved for the official stdlib | The ownership model is scope = account/organization; short names are gated by a server-side reserved list |
 | Registry endpoint configured via the `EMO_REGISTRY` env var; private registries are a first-class scenario | The protocol must be simple enough to self-host, and even to serve as a static file tree |
 
@@ -186,7 +186,7 @@ GET /api/v1/packages/:owner/:name/versions
       "version": "1.2.0",
       "checksum": "9f2c...ab",
       "archive_sha256": "4d7e...01",
-      "targets": ["native", "wasm"],
+      "targets": ["ocaml", "wasm"],
       "yanked": false,
       "published_at": "2026-09-30T12:00:00Z"
     }
@@ -289,7 +289,7 @@ the publish request. They are maintained after publishing via the web UI or:
 PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 ```
 
-This keeps the manifest's 4-field purity and keeps `emo publish` trivial.
+This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
 
 ## 6. Server data model
 

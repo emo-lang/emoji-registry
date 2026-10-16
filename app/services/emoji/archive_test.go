@@ -161,7 +161,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestProcessUpload(t *testing.T) {
-	manifest := "package {\n  name = \"acme/tools\"\n  version = \"0.1.0\"\n  deps { json = \"2.3.1\" }\n}\n"
+	manifest := "package {\n  name = \"acme/tools\"\n  version = \"0.1.0\"\n  deps { \"json\" = \"2.3.1\" }\n}\n"
 	files := map[string][]byte{
 		"package.emo": []byte(manifest),
 		"tools.emo":   []byte("let answer = 42"),

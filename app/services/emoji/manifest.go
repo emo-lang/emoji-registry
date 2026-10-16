@@ -16,7 +16,8 @@ var (
 )
 
 var validTargets = map[string]bool{
-	"native":     true,
+	"ocaml":      true,
+	"c":          true,
 	"wasm":       true,
 	"typescript": true,
 	"beam":       true,
@@ -24,11 +25,13 @@ var validTargets = map[string]bool{
 }
 
 // Manifest is the parsed content of a package.emo file. The schema is fixed
-// by the compiler: exactly these four fields, literal values only.
+// by the compiler: the fields name, version, targets, and the optional link
+// and deps, with literal values only.
 type Manifest struct {
 	Name    string
 	Version string
 	Targets []string
+	Link    []string
 	Deps    map[string]string
 }
 
@@ -85,7 +88,8 @@ func CompareVersions(a, b string) int {
 
 // ParseManifest parses package.emo source under the restricted rules the
 // compiler enforces: a single `package { ... }` block with literal `name`,
-// `version`, `targets` and `deps` fields. Errors carry a line number.
+// `version`, `targets`, optional `link`, and `deps` fields. Errors carry a
+// line number.
 func ParseManifest(src []byte) (*Manifest, error) {
 	tokens, err := tokenize(string(src))
 	if err != nil {
@@ -143,6 +147,12 @@ func ParseManifest(src []byte) (*Manifest, error) {
 				return nil, err
 			}
 			m.Targets = targets
+		case "link":
+			link, err := p.linkField()
+			if err != nil {
+				return nil, err
+			}
+			m.Link = link
 		case "deps":
 			deps, err := p.depsField()
 			if err != nil {
@@ -150,7 +160,7 @@ func ParseManifest(src []byte) (*Manifest, error) {
 			}
 			m.Deps = deps
 		default:
-			return nil, p.errorAt(fieldTok, fmt.Sprintf("unknown field %q: only name, version, targets and deps are allowed", fieldTok.text))
+			return nil, p.errorAt(fieldTok, fmt.Sprintf("unknown field %q: only name, version, targets, link and deps are allowed", fieldTok.text))
 		}
 	}
 
@@ -228,7 +238,7 @@ func tokenize(src string) ([]token, error) {
 			i++
 		case c == ' ' || c == '\t' || c == '\r':
 			i++
-		case c == '#':
+		case c == '/' && i+1 < len(src) && src[i+1] == '/':
 			for i < len(src) && src[i] != '\n' {
 				i++
 			}
@@ -393,6 +403,40 @@ func (p *parser) targetsField() ([]string, error) {
 	return targets, nil
 }
 
+// linkField parses `link = ["sqlite3"]`: the system libraries the c target
+// links. Entries are bare library names — the compiler refuses a flag or a
+// path so the manifest stays data rather than a shell fragment.
+func (p *parser) linkField() ([]string, error) {
+	if err := p.expect(tokAssign, "="); err != nil {
+		return nil, err
+	}
+	if err := p.expect(tokLBracket, "["); err != nil {
+		return nil, err
+	}
+
+	libs := []string{}
+
+	for p.peek().kind != tokRBracket {
+		t := p.next()
+		if t.kind != tokString {
+			return nil, p.errorAt(t, "expected a library name string")
+		}
+		if t.text == "" || strings.HasPrefix(t.text, "-") || strings.Contains(t.text, "/") {
+			return nil, p.errorAt(t, fmt.Sprintf("invalid link library %q: bare names only", t.text))
+		}
+		libs = append(libs, t.text)
+
+		if p.peek().kind == tokComma {
+			p.next()
+		} else if p.peek().kind != tokRBracket {
+			return nil, p.errorf("expected , or ]")
+		}
+	}
+
+	p.next() // consume ]
+	return libs, nil
+}
+
 func (p *parser) depsField() (map[string]string, error) {
 	if err := p.expect(tokLBrace, "{"); err != nil {
 		return nil, err
@@ -406,8 +450,8 @@ func (p *parser) depsField() (map[string]string, error) {
 		}
 
 		nameTok := p.next()
-		if nameTok.kind != tokIdent && nameTok.kind != tokString {
-			return nil, p.errorAt(nameTok, "expected a dependency name")
+		if nameTok.kind != tokString {
+			return nil, p.errorAt(nameTok, "expected a dependency name string")
 		}
 		if err := validateDepName(nameTok.text); err != nil {
 			return nil, p.errorAt(nameTok, err.Error())
