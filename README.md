@@ -16,8 +16,10 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
 
 - Accounts with bcrypt passwords, web sessions, and API tokens
   (`emo_<48 hex>`, only the SHA-256 hash is stored, scoped `push`/`yank`)
-- Organizations: members publish, yank and edit metadata under the org scope;
-  owners manage members. Usernames and org names share one namespace
+- Accounts and scopes: your username is itself a publish scope, so you can
+  publish `<username>/<pkg>` with no organization. Organizations are *shared*
+  scopes — members publish, yank and edit metadata under the org scope; owners
+  manage members. Usernames and org names share one namespace
 - Reserved short names live in the `reserved_names` table (seeded from the
   stdlib list at boot) plus a hardcoded fallback; admins manage the DB list at
   `/admin/reserved` — grant the first admin with `go run . admin:grant <username>`
@@ -115,6 +117,23 @@ curl -X POST http://127.0.0.1:1905/api/v1/packages \
   -H 'Content-Type: application/octet-stream' \
   --data-binary @foo--hello--0.1.0.emoji
 ```
+
+### Personal account vs. organization
+
+A package name is `owner/name`, and `owner` is a **scope**. Your username is a
+scope on its own: with an API token you can publish `yourname/hello` right
+away, no organization required — use this for packages you own personally.
+
+An **organization** is a *shared* scope. Create one only when a team owns a
+package together and several people need to publish it, when you want a project
+or brand name instead of your personal handle, or when you want a scope that
+outlives any single account.
+
+Organization names share one namespace with usernames, and every member (not
+just owners) can publish, yank, and edit metadata under the organization's
+scope; owners additionally manage the member list. In the example above, `foo`
+is the publisher's own username — create an organization at `/orgs` (or
+`POST /api/v1/orgs`) only when you need a shared scope such as `acme/widgets`.
 
 ### Point the Emo toolchain at it
 

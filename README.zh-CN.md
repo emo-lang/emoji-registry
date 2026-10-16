@@ -13,7 +13,8 @@ Emo 编译器所依赖的通信协议定义在
 
 - 账号体系:bcrypt 密码、Web session、API token(`emo_<48 hex>`,库里只存
   SHA-256 哈希,按 `push`/`yank` scope 授权)
-- 组织(organizations):成员都能以组织 scope 发布、yank、改元信息;owner 管理成员。
+- 账号与作用域:用户名本身就是一个发布 scope,无需组织即可发布 `<username>/<pkg>`。
+  组织是*共享* scope——成员都能以组织 scope 发布、yank、改元信息,owner 管理成员;
   用户名与组织名共用一个命名空间
 - 短名保留名单存在 `reserved_names` 表(启动时从 stdlib 名单播种),另有硬编码兜底;
   管理员在 `/admin/reserved` 维护 DB 名单——第一个管理员用
@@ -103,6 +104,20 @@ curl -X POST http://127.0.0.1:1905/api/v1/packages \
   -H 'Content-Type: application/octet-stream' \
   --data-binary @foo--hello--0.1.0.emoji
 ```
+
+### 个人账号 vs 组织
+
+包名是 `owner/name`,其中 `owner` 就是一个**作用域(scope)**。你的用户名本身
+就是一个作用域:拿到 API token 后即可发布 `yourname/hello`,无需创建组织——
+适合个人自己拥有的包。
+
+**组织**是*共享*作用域。只有在团队共同拥有某个包、需要多人一起发布,你想用
+项目/品牌名而非个人 handle,或希望作用域独立于某一账号长期存在时,才需要创建。
+
+组织名与用户名共用一个命名空间;组织的**每个成员(不只是 owner)**都能以组织
+scope 发布、yank、改元信息,owner 另外还能管理成员列表。上面的例子里 `foo`
+就是发布者自己的用户名——只有在需要 `acme/widgets` 这类共享 scope 时,才去
+`/orgs`(或 `POST /api/v1/orgs`)创建组织。
 
 ### 让 Emo 工具链接入
 

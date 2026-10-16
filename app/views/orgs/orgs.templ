@@ -16,13 +16,30 @@ templ Index(username string, admin bool, organizations []*models.Organization, e
 				.org-row .name { font-weight: 650; }
 				.org-row a { color: var(--er-ink); text-decoration: none; }
 				.org-row a:hover { color: var(--er-accent); }
+				.scope-guide { display: flex; gap: 16px; flex-wrap: wrap; margin: 20px 0 8px; }
+				.scope-guide .scope-card { flex: 1 1 300px; border: 1px solid var(--er-line); border-radius: 8px; padding: 14px 16px; }
+				.scope-guide h3 { margin: 0 0 6px; font-size: 14px; }
+				.scope-guide p { margin: 0; font-size: 14px; color: var(--er-muted); }
+				.scope-heading { margin-top: 32px; }
 			</style>
 			<h1>My organizations</h1>
+			<p class="er-muted">Organizations are optional — your personal account can already publish packages.</p>
+			<section class="scope-guide">
+				<div class="scope-card">
+					<h3>Personal account · <code>{ username }</code></h3>
+					<p>Your username is a package scope on its own. With an API token you can publish <code>{ username }/my-package</code> right away — no organization needed. Use it for packages you own personally.</p>
+				</div>
+				<div class="scope-card">
+					<h3>Organization · shared scope</h3>
+					<p>Create one when a team owns a package together, when you want a project or brand name instead of your personal handle, or when several people need to publish under the same scope. Names share the namespace with usernames, and every member (not just owners) can publish under the organization's scope.</p>
+				</div>
+			</section>
 			if err != "" {
 				<div class="er-error">{ err }</div>
 			}
+			<h2 class="scope-heading">Your organizations</h2>
 			if len(organizations) == 0 {
-				<p class="er-muted">You are not a member of any organization yet.</p>
+				<p class="er-muted">You are not a member of any organization — that's fine, you can still publish under your own username.</p>
 			}
 			for _, org := range organizations {
 				<div class="org-row">
@@ -42,7 +59,7 @@ templ New(username string, admin bool, err string, name string, displayName stri
 	@layouts.Base("New Organization", username, admin) {
 		<main class="er-page" style="max-width: 420px;">
 			<h1>New organization</h1>
-			<p class="er-muted">Organization names share the namespace with usernames: members publish packages under the organization's scope.</p>
+			<p class="er-muted">You only need an organization to share a scope with others — your own username already works as a package scope. Organization names share the namespace with usernames: members publish packages under the organization's scope.</p>
 			if err != "" {
 				<div class="er-error">{ err }</div>
 			}

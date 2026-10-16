@@ -13,10 +13,11 @@ templ Index(username string, admin bool, latest []*models.Package, top []*models
 		<main class="er-page">
 			@packages.CardStyles()
 			<style>
-				.hero { text-align: center; padding: 48px 0 32px; }
+				.hero { text-align: left; padding: 48px 0 32px; }
 				.hero h1 { margin: 0; font-size: clamp(36px, 6vw, 56px); font-weight: 700; letter-spacing: -2px; }
 				.hero h1 .accent { color: var(--er-accent); }
 				.hero .lead { margin-top: 12px; color: var(--er-muted); }
+				.hero .lead-note { margin-top: 6px; color: var(--er-muted); font-size: 14px; }
 				.hero .hero-search { margin: 24px auto 0; max-width: 480px; }
 				.hero .hero-search input {
 					width: 100%; padding: 10px 16px; font-size: 15px;
@@ -29,9 +30,6 @@ templ Index(username string, admin bool, latest []*models.Package, top []*models
 			<section class="hero">
 				<h1>Emo Registry</h1>
 				<p class="lead">The package registry for the Emo programming language.</p>
-				<form class="hero-search" action="/search" method="get">
-					<input type="search" name="q" placeholder="Search packages…" autofocus/>
-				</form>
 			</section>
 			<section class="home-section">
 				<h2>Recently published</h2>

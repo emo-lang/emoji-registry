@@ -10,6 +10,7 @@ templ Signup(err string, username string, email string) {
 	@layouts.Base("Sign up", "", false) {
 		<main class="er-page" style="max-width: 420px;">
 			<h1>Create your account</h1>
+			<p class="er-muted">Your username doubles as your package scope: you can publish <code>yourname/package</code> with an API token right away. You only need an organization to share a scope with others.</p>
 			if err != "" {
 				<div class="er-error">{ err }</div>
 			}

@@ -23,6 +23,7 @@ templ Index(username string, admin bool, tokens []*models.APIToken, err string) 
 			</style>
 			<h1>API Tokens</h1>
 			<p class="er-muted">Tokens authenticate <code>emo publish</code> and other CLI operations. The plaintext token is shown exactly once at creation.</p>
+			<p class="er-muted">The scope comes from the manifest name: <code>{ username }/pkg</code> publishes under your personal account, while <code>team/pkg</code> publishes under an organization you belong to. Scope rules are covered on the <a href="/orgs">Organizations</a> page.</p>
 			<section>
 				<h2>Create token</h2>
 				if err != "" {
