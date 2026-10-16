@@ -50,6 +50,7 @@ func setupTest(t *testing.T) *gin.Engine {
 	accounts_api.Routes(v1)
 	registry_api.Routes(v1)
 	r.GET("/p/:owner/:name", ShowAction)
+	r.POST("/p/:owner/:name/versions/:version/yank", middlewares.RequireWebAuth(), YankVersionAction)
 
 	return r
 }

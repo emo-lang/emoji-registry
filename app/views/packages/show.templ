@@ -29,11 +29,18 @@ templ Show(username string, admin bool, pkg *models.Package, versions []*models.
 				.pkg-links a { color: var(--er-accent); }
 				.pkg-section { margin-top: 32px; }
 				.pkg-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }
-				.version-row { display: flex; gap: 14px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
+				.version-row { display: flex; gap: 8px; flex-direction: column; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }
 				.version-row .v { font-family: monospace; font-weight: 650; }
 				.version-row .meta { color: var(--er-muted); font-size: 13px; }
 				.version-row.yanked .v, .version-row.yanked .meta { color: var(--er-muted); text-decoration: line-through; }
 				.version-row .yanked-tag { font-size: 12px; color: #b3453a; text-decoration: none; }
+				.version-row form { margin-left: auto; }
+				.version-row .yank-btn {
+					font-size: 12px; padding: 2px 10px; cursor: pointer;
+					border: 1px solid var(--er-line); border-radius: 6px;
+					background: var(--er-code-bg); color: var(--er-ink);
+				}
+				.version-row .yank-btn:hover { color: #b3453a; border-color: #b3453a; }
 				.deps-list { font-family: monospace; font-size: 14px; }
 				.deps-list .dep { padding: 2px 0; }
 			</style>
@@ -115,7 +122,7 @@ templ Show(username string, admin bool, pkg *models.Package, versions []*models.
 			<section class="pkg-section">
 				<h2>Versions</h2>
 				for _, version := range versions {
-					@versionRow(pkg, version)
+					@versionRow(pkg, version, canManage)
 				}
 			</section>
 		</main>
@@ -157,7 +164,7 @@ func barHeight(count, max int64) string {
 	return "height: " + strconv.FormatInt(pct, 10) + "%"
 }
 
-templ versionRow(pkg *models.Package, version *models.Version) {
+templ versionRow(pkg *models.Package, version *models.Version, canManage bool) {
 	if version.Yanked() {
 		<div class="version-row yanked">
 			<span class="v">{ version.Version }</span>
@@ -168,11 +175,22 @@ templ versionRow(pkg *models.Package, version *models.Version) {
 		</div>
 	} else {
 		<div class="version-row">
-			<span class="v">{ version.Version }</span>
-			<span class="meta">{ version.CreatedAt.Format("2006-01-02") }</span>
-			<span class="meta">{ strings.Join(version.TargetList(), ", ") }</span>
-			<span class="meta">sha256:{ shortChecksum(version.Checksum) }</span>
-		</div>
+			<div class="v" style="display: flex; flex-direction: row; gap: 12px;">
+			  <span class="">{ version.Version }</span>
+			  <span>
+          if canManage {
+            <form method="post" action={ templ.SafeURL("/p/" + pkg.OwnerScope + "/" + pkg.Name + "/versions/" + version.Version + "/yank") }>
+              <button class="yank-btn" type="submit">Yank</button>
+            </form>
+          }
+        </span>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <span class="meta">{ version.CreatedAt.Format("2006-01-02") }</span>
+        <span class="meta" style="font-weight: bold;">{ strings.Join(version.TargetList(), ", ") }</span>
+			  <span class="meta">sha256:{ shortChecksum(version.Checksum) }</span>
+      </div>
+    </div>
 	}
 }
 
