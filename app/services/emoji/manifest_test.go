@@ -48,6 +48,40 @@ func TestParseManifestMinimal(t *testing.T) {
 	if len(m.Targets) != 0 || len(m.Deps) != 0 {
 		t.Fatalf("expected empty targets and deps: %+v", m)
 	}
+	if m.Registry != "" {
+		t.Fatalf("expected no registry: %+v", m)
+	}
+}
+
+func TestParseManifestRegistry(t *testing.T) {
+	m, err := ParseManifest([]byte(`package { name = "a/b" version = "1.2.3" registry = "https://packages.example.com" }`))
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if m.Registry != "https://packages.example.com" {
+		t.Fatalf("unexpected registry: %+v", m)
+	}
+
+	cases := []struct {
+		name    string
+		src     string
+		wantSub string
+	}{
+		{"plain host", `package { name = "a/b" version = "1.0.0" registry = "packages.example.com" }`, "must be an http(s) URL"},
+		{"filesystem path", `package { name = "a/b" version = "1.0.0" registry = "/srv/registry" }`, "must be an http(s) URL"},
+		{"not a string", `package { name = "a/b" version = "1.0.0" registry = 5 }`, "unexpected character"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := ParseManifest([]byte(tc.src))
+			if err == nil {
+				t.Fatalf("expected error for %q", tc.src)
+			}
+			if !strings.Contains(err.Error(), tc.wantSub) {
+				t.Fatalf("error %q does not mention %q", err, tc.wantSub)
+			}
+		})
+	}
 }
 
 func TestParseManifestErrors(t *testing.T) {

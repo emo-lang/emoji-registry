@@ -29,14 +29,19 @@ var validTargets = map[string]bool{
 }
 
 // Manifest is the parsed content of a package.emo file. The schema is fixed
-// by the compiler: the fields name, version, targets, and the optional link
-// and deps, with literal values only.
+// by the compiler: the fields name, version, targets, and the optional link,
+// registry, and deps, with literal values only.
 type Manifest struct {
 	Name    string
 	Version string
 	Targets []string
 	Link    []string
-	Deps    map[string]string
+	// Registry is the http(s) endpoint the project pulls from and publishes
+	// to; empty when the manifest does not name one. The field is accepted
+	// because the compiler's schema carries it — the server itself never
+	// acts on the value.
+	Registry string
+	Deps     map[string]string
 }
 
 // Owner returns the scope part of Name ("acme" in "acme/json_tools").
@@ -92,8 +97,8 @@ func CompareVersions(a, b string) int {
 
 // ParseManifest parses package.emo source under the restricted rules the
 // compiler enforces: a single `package { ... }` block with literal `name`,
-// `version`, `targets`, optional `link`, and `deps` fields. Errors carry a
-// line number.
+// `version`, `targets`, optional `link` and `registry`, and `deps` fields.
+// Errors carry a line number.
 func ParseManifest(src []byte) (*Manifest, error) {
 	tokens, err := tokenize(string(src))
 	if err != nil {
@@ -157,6 +162,18 @@ func ParseManifest(src []byte) (*Manifest, error) {
 				return nil, err
 			}
 			m.Link = link
+		case "registry":
+			value, err := p.stringField()
+			if err != nil {
+				return nil, err
+			}
+			// The compiler's rule: an http(s) URL only. A filesystem
+			// registry is a local developer affordance set with
+			// EMO_REGISTRY, never a committed manifest value.
+			if !strings.HasPrefix(value, "http://") && !strings.HasPrefix(value, "https://") {
+				return nil, p.errorAt(fieldTok, fmt.Sprintf("invalid registry %q: must be an http(s) URL", value))
+			}
+			m.Registry = value
 		case "deps":
 			deps, err := p.depsField()
 			if err != nil {
@@ -164,7 +181,7 @@ func ParseManifest(src []byte) (*Manifest, error) {
 			}
 			m.Deps = deps
 		default:
-			return nil, p.errorAt(fieldTok, fmt.Sprintf("unknown field %q: only name, version, targets, link and deps are allowed", fieldTok.text))
+			return nil, p.errorAt(fieldTok, fmt.Sprintf("unknown field %q: only name, version, targets, link, registry and deps are allowed", fieldTok.text))
 		}
 	}
 
