@@ -46,3 +46,22 @@ func TestBaseEmitsDescriptionWhenSet(t *testing.T) {
 		t.Fatalf("expected the meta description, got %q", body)
 	}
 }
+
+// The header carries a light/dark toggle, and a script that applies the
+// stored (or OS) theme before the first paint.
+func TestBaseRendersThemeToggle(t *testing.T) {
+	body := renderBase(t)
+
+	for _, want := range []string{
+		`id="theme-toggle"`,
+		`class="icon-moon"`,
+		`class="icon-sun"`,
+		`localStorage.getItem("theme")`,
+		`document.documentElement.dataset.theme = theme`,
+		`:root[data-theme="dark"]`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("expected body to contain %q", want)
+		}
+	}
+}

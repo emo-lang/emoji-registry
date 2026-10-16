@@ -48,13 +48,32 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 				<meta property="og:type" content="website"/>
 				<meta name="theme-color" content="#101319"/>
 			}
+			<script>
+				// Apply the stored (or OS) theme before the first paint so a
+				// dark-mode visitor never sees a flash of the light theme.
+				(function () {
+					try {
+						var stored = localStorage.getItem("theme");
+						var theme = stored === "light" || stored === "dark"
+							? stored
+							: (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+						document.documentElement.dataset.theme = theme;
+					} catch (e) { /* private mode: fall back to the CSS default */ }
+				})();
+			</script>
 			<style>
 				:root {
 					--er-bg: #fafaf7; --er-ink: #232820; --er-muted: #6d7369;
 					--er-line: #dfe2d7; --er-accent: #5d763c; --er-code-bg: #f0f2ea;
 				}
+				/* An explicit choice (set by the header toggle) wins; without
+				   JavaScript there is no data-theme, so fall back to the OS. */
+				:root[data-theme="dark"] {
+					--er-bg: #101319; --er-ink: #f3f4ef; --er-muted: #9a9eaa;
+					--er-line: #2b303a; --er-accent: #c2f16b; --er-code-bg: #171b23;
+				}
 				@media (prefers-color-scheme: dark) {
-					:root {
+					:root:not([data-theme="light"]) {
 						--er-bg: #101319; --er-ink: #f3f4ef; --er-muted: #9a9eaa;
 						--er-line: #2b303a; --er-accent: #c2f16b; --er-code-bg: #171b23;
 					}
@@ -88,6 +107,19 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 					background: none; border: none; padding: 0; cursor: pointer;
 					color: var(--er-ink); font-size: 14px;
 				}
+				.topnav button.theme-toggle {
+					display: inline-flex; align-items: center; justify-content: center;
+					width: 30px; height: 30px; padding: 0; cursor: pointer;
+					background: none; border: 1px solid var(--er-line);
+					border-radius: 6px; color: var(--er-ink);
+				}
+				.topnav button.theme-toggle:hover {
+					color: var(--er-accent); border-color: var(--er-accent);
+				}
+				.theme-toggle svg { width: 15px; height: 15px; display: block; }
+				.theme-toggle .icon-sun { display: none; }
+				:root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+				:root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 				.er-shell {
 					display: flex; gap: 40px; align-items: flex-start; justify-content: center;
 					width: min(1120px, calc(100% - 48px)); margin: 0 auto;
@@ -164,6 +196,15 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 						<a href="/login">Login</a>
 						<a href="/signup">Signup</a>
 					}
+					<button class="theme-toggle" type="button" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+						<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+						</svg>
+						<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<circle cx="12" cy="12" r="4"></circle>
+							<path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+						</svg>
+					</button>
 				</nav>
 			</header>
 			<div class="er-shell">
@@ -172,6 +213,18 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 					@Sidebar()
 				}
 			</div>
+			<script>
+				// Flip between light and dark, remembering the choice.
+				(function () {
+					var button = document.getElementById("theme-toggle");
+					if (!button) return;
+					button.addEventListener("click", function () {
+						var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+						document.documentElement.dataset.theme = next;
+						try { localStorage.setItem("theme", next); } catch (e) {}
+					});
+				})();
+			</script>
 		</body>
 	</html>
 }
