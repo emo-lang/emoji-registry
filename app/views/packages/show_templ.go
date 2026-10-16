@@ -55,14 +55,14 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"er-page\"><style>\n\t\t\t\t.pkg-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }\n\t\t\t\t.pkg-head h1 { margin: 0; font-size: 32px; letter-spacing: -1px; }\n\t\t\t\t.pkg-head .license { font-size: 13px; color: var(--er-muted); }\n\t\t\t\t.private-badge {\n\t\t\t\t\tfont-size: 12px; font-weight: 650; padding: 2px 10px; border-radius: 999px;\n\t\t\t\t\tborder: 1px solid var(--er-accent); color: var(--er-accent);\n\t\t\t\t}\n\t\t\t\t.pkg-links { margin-top: 8px; font-size: 14px; display: flex; gap: 16px; }\n\t\t\t\t.pkg-links a { color: var(--er-accent); }\n\t\t\t\t.pkg-section { margin-top: 32px; }\n\t\t\t\t.pkg-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }\n\t\t\t\t.version-row { display: flex; gap: 8px; flex-direction: column; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }\n\t\t\t\t.version-row .v { font-family: monospace; font-weight: 650; }\n\t\t\t\t.version-row .meta { color: var(--er-muted); font-size: 13px; }\n\t\t\t\t.version-row.yanked .v, .version-row.yanked .meta { color: var(--er-muted); text-decoration: line-through; }\n\t\t\t\t.version-row .yanked-tag { font-size: 12px; color: #b3453a; text-decoration: none; }\n\t\t\t\t.version-row form { margin-left: auto; }\n\t\t\t\t.version-row .yank-btn {\n\t\t\t\t\tfont-size: 12px; padding: 2px 10px; cursor: pointer;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-code-bg); color: var(--er-ink);\n\t\t\t\t}\n\t\t\t\t.version-row .yank-btn:hover { color: #b3453a; border-color: #b3453a; }\n\t\t\t\t.deps-list { font-family: monospace; font-size: 14px; }\n\t\t\t\t.deps-list .dep { padding: 2px 0; }\n\t\t\t</style><div class=\"pkg-head\"><h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"er-page\"><style>\n\t\t\t\t.pkg-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }\n\t\t\t\t.pkg-head h1 { margin: 0; font-size: 32px; letter-spacing: -1px; }\n\t\t\t\t.pkg-head .license { font-size: 13px; color: var(--er-muted); }\n\t\t\t\t.private-badge {\n\t\t\t\t\tfont-size: 12px; font-weight: 650; padding: 2px 10px; border-radius: 999px;\n\t\t\t\t\tborder: 1px solid var(--er-accent); color: var(--er-accent);\n\t\t\t\t}\n\t\t\t\t.pkg-links { margin-top: 8px; font-size: 14px; display: flex; gap: 16px; }\n\t\t\t\t.pkg-links a { color: var(--er-accent); }\n\t\t\t\t.pkg-section { margin-top: 32px; }\n\t\t\t\t.pkg-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }\n\t\t\t\t.version-row { display: flex; gap: 8px; flex-direction: column; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }\n\t\t\t\t.version-row .v { font-family: monospace; font-weight: 650; }\n\t\t\t\t.version-row .meta { color: var(--er-muted); font-size: 13px; }\n\t\t\t\t.version-row.yanked .v, .version-row.yanked .meta { color: var(--er-muted); text-decoration: line-through; }\n\t\t\t\t.version-row .yanked-tag { font-size: 12px; color: #b3453a; text-decoration: none; }\n\t\t\t\t.version-row form { margin-left: auto; }\n\t\t\t\t.version-row .yank-btn {\n\t\t\t\t\tfont-size: 12px; padding: 2px 10px; cursor: pointer;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-code-bg); color: var(--er-ink);\n\t\t\t\t}\n\t\t\t\t.version-row .yank-btn:hover { color: #b3453a; border-color: #b3453a; }\n\t\t\t\t.yank-dialog {\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 10px; padding: 20px 22px;\n\t\t\t\t\tmax-width: 420px; color: var(--er-ink); background: var(--er-bg);\n\t\t\t\t}\n\t\t\t\t.yank-dialog::backdrop { background: rgba(0, 0, 0, .4); }\n\t\t\t\t.yank-dialog h3 { margin: 0 0 8px; font-size: 16px; }\n\t\t\t\t.yank-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }\n\t\t\t\t.yank-dialog .yank-confirm { border-color: #b3453a; color: #b3453a; }\n\t\t\t\t.yank-dialog .yank-confirm:disabled { opacity: .5; cursor: not-allowed; }\n\t\t\t\t.deps-list { font-family: monospace; font-size: 14px; }\n\t\t\t\t.deps-list .dep { padding: 2px 0; }\n\t\t\t</style><div class=\"pkg-head\"><h1>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.FullName())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 48, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 57, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -86,7 +86,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.License)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 53, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 62, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -104,7 +104,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(pkg.Downloads, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 55, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 64, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -122,7 +122,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var6 templ.SafeURL
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/p/" + pkg.OwnerScope + "/" + pkg.Name + "/visibility"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 58, Col: 103}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 67, Col: 103}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -156,7 +156,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 69, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 78, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -179,7 +179,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var8 templ.SafeURL
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(pkg.Homepage))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 73, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 82, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -198,7 +198,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var9 templ.SafeURL
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(pkg.Repository))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 76, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 85, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -221,7 +221,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var10 templ.SafeURL
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/orgs/" + pkg.OwnerScope))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 81, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 90, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -234,7 +234,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.OwnerScope)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 81, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 90, Col: 75}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -248,7 +248,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.OwnerScope)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 83, Col: 22}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 92, Col: 22}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -267,7 +267,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("// package.emo\ndeps {\n  \"" + pkg.FullName() + "\" = \"" + latest.Version + "\"\n}")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 90, Col: 114}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 99, Col: 114}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -280,7 +280,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("require \"" + pkg.FullName() + "\"")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 91, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 100, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -293,7 +293,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var15 templ.SafeURL
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/downloads/" + pkg.OwnerScope + "--" + pkg.Name + "--" + latest.Version + ".emoji"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 93, Col: 129}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 102, Col: 129}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -306,7 +306,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.OwnerScope)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 94, Col: 32}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 103, Col: 32}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -319,7 +319,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 94, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 103, Col: 46}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -332,7 +332,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(latest.Version)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 94, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 103, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -350,7 +350,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 					var templ_7745c5c3_Var19 string
 					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(latest.Version)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 100, Col: 40}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 109, Col: 40}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 					if templ_7745c5c3_Err != nil {
@@ -368,7 +368,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 						var templ_7745c5c3_Var20 string
 						templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 103, Col: 31}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 112, Col: 31}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 						if templ_7745c5c3_Err != nil {
@@ -381,7 +381,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 						var templ_7745c5c3_Var21 string
 						templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(version)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 103, Col: 46}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 112, Col: 46}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 						if templ_7745c5c3_Err != nil {
@@ -405,7 +405,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(pkg.Downloads, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 111, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 120, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -443,6 +443,12 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 			}
 			for _, version := range versions {
 				templ_7745c5c3_Err = versionRow(pkg, version, canManage).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if canManage {
+				templ_7745c5c3_Err = yankDialog().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -495,7 +501,7 @@ func downloadChart(daily []stats.DayCount) templ.Component {
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(barHeight(day.Count, maxCount(daily)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 141, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 153, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -508,7 +514,7 @@ func downloadChart(daily []stats.DayCount) templ.Component {
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.ResolveAttributeValue(day.Date + ": " + strconv.FormatInt(day.Count, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 141, Col: 126}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 153, Col: 126}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25)
 			if templ_7745c5c3_Err != nil {
@@ -577,7 +583,7 @@ func versionRow(pkg *models.Package, version *models.Version, canManage bool) te
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(version.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 170, Col: 36}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 182, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -590,7 +596,7 @@ func versionRow(pkg *models.Package, version *models.Version, canManage bool) te
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(version.CreatedAt.Format("2006-01-02"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 171, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 183, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -603,7 +609,7 @@ func versionRow(pkg *models.Package, version *models.Version, canManage bool) te
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(version.TargetList(), ", "))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 172, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 184, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
@@ -616,7 +622,7 @@ func versionRow(pkg *models.Package, version *models.Version, canManage bool) te
 			var templ_7745c5c3_Var30 string
 			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(shortChecksum(version.Checksum))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 173, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 185, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 			if templ_7745c5c3_Err != nil {
@@ -634,7 +640,7 @@ func versionRow(pkg *models.Package, version *models.Version, canManage bool) te
 			var templ_7745c5c3_Var31 string
 			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(version.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 179, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 191, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
@@ -645,64 +651,77 @@ func versionRow(pkg *models.Package, version *models.Version, canManage bool) te
 				return templ_7745c5c3_Err
 			}
 			if canManage {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<form method=\"post\" action=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<button class=\"yank-btn\" type=\"button\" data-yank-action=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var32 templ.SafeURL
-				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/p/" + pkg.OwnerScope + "/" + pkg.Name + "/versions/" + version.Version + "/yank"))
+				var templ_7745c5c3_Var32 string
+				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.ResolveAttributeValue("/p/" + pkg.OwnerScope + "/" + pkg.Name + "/versions/" + version.Version + "/yank")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 182, Col: 138}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 194, Col: 152}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\"><button class=\"yank-btn\" type=\"submit\">Yank</button></form>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var32)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\" data-yank-version=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var33 string
+				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.ResolveAttributeValue(version.Version)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 194, Col: 190}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var33)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\">Yank</button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</span></div><div style=\"display: flex; gap: 12px;\"><span class=\"meta\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var33 string
-			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(version.CreatedAt.Format("2006-01-02"))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 189, Col: 67}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</span> <span class=\"meta\" style=\"font-weight: bold;\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</span></div><div style=\"display: flex; gap: 12px;\"><span class=\"meta\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var34 string
-			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(version.TargetList(), ", "))
+			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(version.CreatedAt.Format("2006-01-02"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 190, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 199, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</span> <span class=\"meta\">sha256:")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</span> <span class=\"meta\" style=\"font-weight: bold;\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var35 string
-			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(shortChecksum(version.Checksum))
+			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(version.TargetList(), ", "))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 191, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 200, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</span></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</span> <span class=\"meta\">sha256:")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var36 string
+			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(shortChecksum(version.Checksum))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `packages/show.templ`, Line: 201, Col: 64}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "</span></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -716,6 +735,39 @@ func shortChecksum(checksum string) string {
 		return checksum[:12]
 	}
 	return checksum
+}
+
+// yankDialog is the confirmation modal behind every version row's Yank button.
+// Yanking is irreversible, so the submit stays disabled until the typed phrase
+// matches exactly. It renders once per page; the clicked button supplies the
+// form action and the version label.
+func yankDialog() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var37 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var37 == nil {
+			templ_7745c5c3_Var37 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<dialog id=\"yank-dialog\" class=\"yank-dialog\"><form method=\"post\" id=\"yank-form\"><h3>Yank <span id=\"yank-dialog-version\"></span>?</h3><p class=\"er-muted\">Yanking is not reversible. Type <strong>I want to yank this version</strong> below to confirm.</p><input class=\"er-input\" id=\"yank-dialog-input\" name=\"confirm\" autocomplete=\"off\" autocapitalize=\"off\" spellcheck=\"false\" placeholder=\"I want to yank this version\"><div class=\"yank-dialog-actions\"><button class=\"er-btn\" type=\"button\" id=\"yank-dialog-cancel\">Cancel</button> <button class=\"er-btn yank-confirm\" type=\"submit\" id=\"yank-dialog-submit\" disabled>Yank version</button></div></form></dialog><script>\n\t\t(function () {\n\t\t\tvar phrase = \"I want to yank this version\";\n\t\t\tvar dialog = document.getElementById(\"yank-dialog\");\n\t\t\tvar form = document.getElementById(\"yank-form\");\n\t\t\tvar input = document.getElementById(\"yank-dialog-input\");\n\t\t\tvar submit = document.getElementById(\"yank-dialog-submit\");\n\t\t\tvar versionEl = document.getElementById(\"yank-dialog-version\");\n\t\t\tif (!dialog || !form || !input || !submit) return;\n\n\t\t\tfunction sync() {\n\t\t\t\tsubmit.disabled = input.value !== phrase;\n\t\t\t}\n\n\t\t\tdocument.querySelectorAll(\"[data-yank-action]\").forEach(function (btn) {\n\t\t\t\tbtn.addEventListener(\"click\", function () {\n\t\t\t\t\tform.setAttribute(\"action\", btn.getAttribute(\"data-yank-action\"));\n\t\t\t\t\tversionEl.textContent = btn.getAttribute(\"data-yank-version\");\n\t\t\t\t\tinput.value = \"\";\n\t\t\t\t\tsync();\n\t\t\t\t\tdialog.showModal();\n\t\t\t\t\tinput.focus();\n\t\t\t\t});\n\t\t\t});\n\n\t\t\tinput.addEventListener(\"input\", sync);\n\t\t\tdocument.getElementById(\"yank-dialog-cancel\").addEventListener(\"click\", function () {\n\t\t\t\tdialog.close();\n\t\t\t});\n\t\t})();\n\t</script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
 }
 
 var _ = templruntime.GeneratedTemplate

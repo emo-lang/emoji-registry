@@ -41,6 +41,15 @@ templ Show(username string, admin bool, pkg *models.Package, versions []*models.
 					background: var(--er-code-bg); color: var(--er-ink);
 				}
 				.version-row .yank-btn:hover { color: #b3453a; border-color: #b3453a; }
+				.yank-dialog {
+					border: 1px solid var(--er-line); border-radius: 10px; padding: 20px 22px;
+					max-width: 420px; color: var(--er-ink); background: var(--er-bg);
+				}
+				.yank-dialog::backdrop { background: rgba(0, 0, 0, .4); }
+				.yank-dialog h3 { margin: 0 0 8px; font-size: 16px; }
+				.yank-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+				.yank-dialog .yank-confirm { border-color: #b3453a; color: #b3453a; }
+				.yank-dialog .yank-confirm:disabled { opacity: .5; cursor: not-allowed; }
 				.deps-list { font-family: monospace; font-size: 14px; }
 				.deps-list .dep { padding: 2px 0; }
 			</style>
@@ -124,6 +133,9 @@ templ Show(username string, admin bool, pkg *models.Package, versions []*models.
 				for _, version := range versions {
 					@versionRow(pkg, version, canManage)
 				}
+				if canManage {
+					@yankDialog()
+				}
 			</section>
 		</main>
 	}
@@ -179,9 +191,7 @@ templ versionRow(pkg *models.Package, version *models.Version, canManage bool) {
 			  <span class="">{ version.Version }</span>
 			  <span>
           if canManage {
-            <form method="post" action={ templ.SafeURL("/p/" + pkg.OwnerScope + "/" + pkg.Name + "/versions/" + version.Version + "/yank") }>
-              <button class="yank-btn" type="submit">Yank</button>
-            </form>
+            <button class="yank-btn" type="button" data-yank-action={ "/p/" + pkg.OwnerScope + "/" + pkg.Name + "/versions/" + version.Version + "/yank" } data-yank-version={ version.Version }>Yank</button>
           }
         </span>
       </div>
@@ -199,4 +209,55 @@ func shortChecksum(checksum string) string {
 		return checksum[:12]
 	}
 	return checksum
+}
+
+// yankDialog is the confirmation modal behind every version row's Yank button.
+// Yanking is irreversible, so the submit stays disabled until the typed phrase
+// matches exactly. It renders once per page; the clicked button supplies the
+// form action and the version label.
+templ yankDialog() {
+	<dialog id="yank-dialog" class="yank-dialog">
+		<form method="post" id="yank-form">
+			<h3>Yank <span id="yank-dialog-version"></span>?</h3>
+			<p class="er-muted">
+				Yanking is not reversible. Type <strong>I want to yank this version</strong> below to confirm.
+			</p>
+			<input class="er-input" id="yank-dialog-input" name="confirm" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="I want to yank this version"/>
+			<div class="yank-dialog-actions">
+				<button class="er-btn" type="button" id="yank-dialog-cancel">Cancel</button>
+				<button class="er-btn yank-confirm" type="submit" id="yank-dialog-submit" disabled>Yank version</button>
+			</div>
+		</form>
+	</dialog>
+	<script>
+		(function () {
+			var phrase = "I want to yank this version";
+			var dialog = document.getElementById("yank-dialog");
+			var form = document.getElementById("yank-form");
+			var input = document.getElementById("yank-dialog-input");
+			var submit = document.getElementById("yank-dialog-submit");
+			var versionEl = document.getElementById("yank-dialog-version");
+			if (!dialog || !form || !input || !submit) return;
+
+			function sync() {
+				submit.disabled = input.value !== phrase;
+			}
+
+			document.querySelectorAll("[data-yank-action]").forEach(function (btn) {
+				btn.addEventListener("click", function () {
+					form.setAttribute("action", btn.getAttribute("data-yank-action"));
+					versionEl.textContent = btn.getAttribute("data-yank-version");
+					input.value = "";
+					sync();
+					dialog.showModal();
+					input.focus();
+				});
+			});
+
+			input.addEventListener("input", sync);
+			document.getElementById("yank-dialog-cancel").addEventListener("click", function () {
+				dialog.close();
+			});
+		})();
+	</script>
 }

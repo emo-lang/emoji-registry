@@ -15,6 +15,11 @@ import (
 	"github.com/emo-lang/emoji-registry/app/views/errors"
 )
 
+// yankConfirmPhrase must be typed verbatim in the web yank dialog's input. The
+// dialog enforces it client-side; this constant lets the handler enforce it
+// server-side too, in case the browser guard is bypassed.
+const yankConfirmPhrase = "I want to yank this version"
+
 // YankVersionAction handles POST /p/:owner/:name/versions/:version/yank — the
 // package page's per-version yank button (web session, owning scope members
 // only). Yanking is a soft delete and idempotent; the same effect as
@@ -33,6 +38,12 @@ func YankVersionAction(c *gin.Context) {
 	if pkg == nil || !orgs.CanPublishAs(user, pkg.OwnerScope) {
 		render.HTMLStatus(c, http.StatusNotFound,
 			errors.NotFound(user.Username, "Package "+c.Param("owner")+"/"+c.Param("name")+" does not exist."))
+		return
+	}
+
+	// The confirmation phrase must be provided verbatim; otherwise do nothing.
+	if c.PostForm("confirm") != yankConfirmPhrase {
+		c.Redirect(http.StatusFound, "/p/"+pkg.FullName())
 		return
 	}
 
