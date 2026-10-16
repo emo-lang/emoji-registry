@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	// Letters and digits only: the short name binds in code as the module
-	// identifier, and separator-free parts keep the download filename's
-	// single-dash joins unambiguous.
-	namePartPattern = regexp.MustCompile(`^[a-z0-9]{1,64}$`)
+	// A lowercase identifier: a letter first, then letters, digits, or `_`.
+	// The short name binds in code as the module identifier, so the segment
+	// alphabet is the identifier alphabet; parts stay dash-free, keeping the
+	// download filename's single-dash joins unambiguous.
+	namePartPattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,63}$`)
 	versionPattern  = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
 )
 
@@ -38,14 +39,14 @@ type Manifest struct {
 	Deps    map[string]string
 }
 
-// Owner returns the scope part of Name ("acme" in "acme/jsontools").
+// Owner returns the scope part of Name ("acme" in "acme/json_tools").
 func (m *Manifest) Owner() string {
 	owner, _, _ := strings.Cut(m.Name, "/")
 	return owner
 }
 
-// ShortName returns the package part of Name ("jsontools" in
-// "acme/jsontools").
+// ShortName returns the package part of Name ("json_tools" in
+// "acme/json_tools").
 func (m *Manifest) ShortName() string {
 	_, name, _ := strings.Cut(m.Name, "/")
 	return name
@@ -189,7 +190,7 @@ func validatePackageName(name string) error {
 		return fmt.Errorf("invalid name %q: must be in owner/name form", name)
 	}
 	if !ValidNamePart(owner) || !ValidNamePart(short) {
-		return fmt.Errorf("invalid name %q: owner and name must be 1-64 chars of [a-z0-9]", name)
+		return fmt.Errorf("invalid name %q: owner and name must be lowercase identifiers: a letter, then letters, digits or _", name)
 	}
 	return nil
 }

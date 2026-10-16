@@ -49,7 +49,7 @@ templ Reserved(username string, adminFlag bool, rows []*models.ReservedName, bui
 				<form class="add-form" method="post" action="/admin/reserved">
 					<div class="er-field">
 						<label for="name">Name</label>
-						<input class="er-input" id="name" name="name" required maxlength="64" pattern="[a-z0-9]+"/>
+						<input class="er-input" id="name" name="name" required maxlength="64" pattern="[a-z][a-z0-9_]*"/>
 					</div>
 					<div class="er-field">
 						<label for="reason">Reason</label>

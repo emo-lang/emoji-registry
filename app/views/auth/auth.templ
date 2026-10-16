@@ -17,7 +17,7 @@ templ Signup(err string, username string, email string) {
 			<form method="post" action="/signup">
 				<div class="er-field">
 					<label for="username">Username</label>
-					<input class="er-input" id="username" name="username" value={ username } required maxlength="64" pattern="[a-z0-9]+"/>
+					<input class="er-input" id="username" name="username" value={ username } required maxlength="64" pattern="[a-z][a-z0-9_]*"/>
 				</div>
 				<div class="er-field">
 					<label for="email">Email</label>

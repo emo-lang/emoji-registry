@@ -40,15 +40,15 @@ The published artifact is a single gzip-compressed tar archive named:
 ```
 
 The single-dash joins are unambiguous because the name rule keeps every
-part free of separators (below), and a version is strict
+part free of dashes (below), and a version is strict
 major.minor.patch — so the file name is always exactly three
 dash-separated segments. (Analogous to RubyGems' `<name>-<version>.gem`.)
 Contents:
 
 ```
-foo-jsontools-1.2.0.emoji  (tar.gz)
+foo-json_tools-1.2.0.emoji  (tar.gz)
 ├── package.emo          # manifest; the single source of truth for name/version/targets/deps
-├── jsontools.emo        # sources
+├── json_tools.emo       # sources
 ├── internal/...         # private subtrees preserved as-is
 ├── shim.c / shim.h      # optional native sources a c-target binding compiles and links
 ├── README.md            # optional, root only; rendered on the package page, never digested
@@ -73,11 +73,12 @@ Invariants:
 - Top-level short names (no `/`) are reserved for the official stdlib (`net`, `http`,
   plus a reserved list for future stdlib names) and are rejected at registration time
   for ordinary accounts.
-- Name validation: lowercase ASCII letters and digits only — no `_`, no `-`. Owner and
-  name are each 1–64 chars. The short name is what `require` binds in code, so it must be
-  a legal module identifier; separator-free parts also keep the download file name's
-  single-dash joins unambiguous. The same rule governs account usernames and organization
-  names, since they become the owner part of published names.
+- Name validation: a lowercase identifier — a letter first, then letters, digits, or `_`;
+  no `-`. Owner and name are each 1–64 chars. The short name is what `require` binds in
+  code, so the rule is the identifier alphabet itself; dash-free parts keep the download
+  file name's single-dash joins unambiguous, and identifiers always render as code
+  (monospace, never underlined), so a `_` never hides. The same rule governs account
+  usernames and organization names, since they become the owner part of published names.
 
 ## 4. Publishing (the `gem push` analogue)
 
@@ -125,7 +126,7 @@ Base URL is whatever `EMO_REGISTRY` points to. Public read endpoints need no tok
 Errors share one shape:
 
 ```json
-{ "error": { "code": "version_exists", "message": "foo/jsontools 1.2.0 already published" } }
+{ "error": { "code": "version_exists", "message": "foo/json_tools 1.2.0 already published" } }
 ```
 
 `code` is a stable machine-readable enum (`package_not_found`, `version_not_found`,
@@ -190,7 +191,7 @@ GET /api/v1/packages/:owner/:name/versions
 
 ```json
 {
-  "package": "foo/jsontools",
+  "package": "foo/json_tools",
   "versions": [
     {
       "version": "1.2.0",
@@ -216,12 +217,12 @@ GET /api/v1/packages/:owner/:name/versions
 #### B.2 Batch dependency query — speeds up MVS
 
 ```
-GET /api/v1/dependencies?packages=foo/jsontools,baz/qux
+GET /api/v1/dependencies?packages=foo/json_tools,baz/qux
 ```
 
 ```json
 {
-  "foo/jsontools": [
+  "foo/json_tools": [
     { "version": "1.2.0", "deps": { "net": "0.1.0" }, "yanked": false }
   ],
   "baz/qux": []
@@ -253,11 +254,11 @@ GET /api/v1/packages/:owner/:name
 
 ```json
 {
-  "name": "foo/jsontools",
+  "name": "foo/json_tools",
   "description": "JSON utilities for Emo",
   "license": "MIT",
   "homepage": "https://example.com",
-  "repository": "https://github.com/foo/jsontools",
+  "repository": "https://github.com/foo/json_tools",
   "downloads": 12345,
   "downloads_last_30d": 987,
   "owners": ["foo"],

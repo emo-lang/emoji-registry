@@ -35,14 +35,14 @@ Emo 编译器实现在同级仓库(`../emo`)。客户端包机制(manifest、解
 <owner>-<name>-<version>.emoji
 ```
 
-单横线连接之所以无歧义,是因为命名规则保证每一段都不含分隔符(见下),
+单横线连接之所以无歧义,是因为命名规则保证每一段都不含横线(见下),
 而版本号是严格的 major.minor.patch——文件名因此永远恰好是三段横线分隔。
 (类比 RubyGems 的 `<name>-<version>.gem`。)内容:
 
 ```
-foo-jsontools-1.2.0.emoji  (tar.gz)
+foo-json_tools-1.2.0.emoji  (tar.gz)
 ├── package.emo          # manifest;name/version/targets/deps 的唯一权威来源
-├── jsontools.emo        # 源码
+├── json_tools.emo       # 源码
 ├── internal/...         # 私有子树原样保留
 ├── shim.c / shim.h      # 可选的原生源码,c target 绑定包编译并链接它们
 ├── README.md            # 可选,仅根部;在包详情页渲染,不参与 digest
@@ -63,10 +63,11 @@ foo-jsontools-1.2.0.emoji  (tar.gz)
 - 包名形如 `owner/name`。`owner` 必须是发布账号本人或其所属组织。
 - 顶级短名(不含 `/`)保留给官方 stdlib(`net`、`http`,以及为未来 stdlib 预留的
   名单),普通账号注册时直接拒绝。
-- 命名规则:只允许小写 ASCII 字母与数字——不允许 `_`,不允许 `-`。owner 与 name
-  各 1–64 字符。短名就是 `require` 在代码里绑定的名字,必须是合法的模块标识符;
-  无分隔符的段名也让下载文件名的单横线连接保持无歧义。账号用户名与组织名沿用
-  同一规则,因为它们会成为发布包名的 owner 段。
+- 命名规则:一个小写标识符——字母开头,后接字母、数字或 `_`;不允许 `-`。owner 与
+  name 各 1–64 字符。短名就是 `require` 在代码里绑定的名字,所以规则就是标识符字母表
+  本身;不含横线的段名让下载文件名的单横线连接保持无歧义;而标识符永远按代码渲染
+  (等宽、无下划线装饰),`_` 不会被埋掉。账号用户名与组织名沿用同一规则,因为它们会
+  成为发布包名的 owner 段。
 
 ## 4. 发布(类比 `gem push`)
 
@@ -106,7 +107,7 @@ token 会被专用错误码 `token_expired` 拒绝,客户端据此提示重新�
 Base URL 即 `EMO_REGISTRY` 指向的地址。公开只读端点无需 token。错误格式统一:
 
 ```json
-{ "error": { "code": "version_exists", "message": "foo/jsontools 1.2.0 already published" } }
+{ "error": { "code": "version_exists", "message": "foo/json_tools 1.2.0 already published" } }
 ```
 
 `code` 是稳定的机器可读枚举(`package_not_found`、`version_not_found`、
@@ -166,7 +167,7 @@ GET /api/v1/packages/:owner/:name/versions
 
 ```json
 {
-  "package": "foo/jsontools",
+  "package": "foo/json_tools",
   "versions": [
     {
       "version": "1.2.0",
@@ -192,12 +193,12 @@ GET /api/v1/packages/:owner/:name/versions
 #### B.2 批量依赖查询——加速 MVS
 
 ```
-GET /api/v1/dependencies?packages=foo/jsontools,baz/qux
+GET /api/v1/dependencies?packages=foo/json_tools,baz/qux
 ```
 
 ```json
 {
-  "foo/jsontools": [
+  "foo/json_tools": [
     { "version": "1.2.0", "deps": { "net": "0.1.0" }, "yanked": false }
   ],
   "baz/qux": []
@@ -227,11 +228,11 @@ GET /api/v1/packages/:owner/:name
 
 ```json
 {
-  "name": "foo/jsontools",
+  "name": "foo/json_tools",
   "description": "JSON utilities for Emo",
   "license": "MIT",
   "homepage": "https://example.com",
-  "repository": "https://github.com/foo/jsontools",
+  "repository": "https://github.com/foo/json_tools",
   "downloads": 12345,
   "downloads_last_30d": 987,
   "owners": ["foo"],

@@ -40,7 +40,7 @@ func AddReservedAction(c *gin.Context) {
 	reason := strings.TrimSpace(c.PostForm("reason"))
 
 	if !emoji.ValidNamePart(name) {
-		renderReserved(c, "Name must be 1-64 characters of lowercase letters or digits.", http.StatusUnprocessableEntity)
+		renderReserved(c, "Name must be a lowercase identifier: a letter, then letters, digits or _.", http.StatusUnprocessableEntity)
 		return
 	}
 

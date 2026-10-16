@@ -8,7 +8,7 @@ import (
 func TestParseManifestFull(t *testing.T) {
 	src := `
 package {
-  name = "acme/jsontools"      // a comment
+  name = "acme/json_tools"      // a comment
   version = "0.1.0"
   targets = ["ocaml", "wasm"]
   link = ["sqlite3"]
@@ -23,10 +23,10 @@ package {
 		t.Fatalf("parse: %v", err)
 	}
 
-	if m.Name != "acme/jsontools" || m.Version != "0.1.0" {
+	if m.Name != "acme/json_tools" || m.Version != "0.1.0" {
 		t.Fatalf("unexpected manifest: %+v", m)
 	}
-	if m.Owner() != "acme" || m.ShortName() != "jsontools" {
+	if m.Owner() != "acme" || m.ShortName() != "json_tools" {
 		t.Fatalf("unexpected name split: %q %q", m.Owner(), m.ShortName())
 	}
 	if len(m.Targets) != 2 || m.Targets[0] != "ocaml" || m.Targets[1] != "wasm" {
@@ -61,7 +61,8 @@ func TestParseManifestErrors(t *testing.T) {
 		{"missing version", `package { name = "a/b" }`, `missing required field "version"`},
 		{"name without owner", `package { name = "plain" version = "1.0.0" }`, "owner/name"},
 		{"uppercase name", `package { name = "Acme/Tool" version = "1.0.0" }`, "invalid name"},
-		{"underscore in name", `package { name = "acme/json_tools" version = "1.0.0" }`, "invalid name"},
+		{"underscore-led name", `package { name = "acme/_tools" version = "1.0.0" }`, "invalid name"},
+		{"digit-led owner", `package { name = "9lives/tools" version = "1.0.0" }`, "invalid name"},
 		{"hyphen in name", `package { name = "acme/emoji-hello" version = "1.0.0" }`, "invalid name"},
 		{"hyphen in owner", `package { name = "ac-me/tools" version = "1.0.0" }`, "invalid name"},
 		{"bad version", `package { name = "a/b" version = "1.0" }`, "invalid version"},

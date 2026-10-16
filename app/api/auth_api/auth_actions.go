@@ -34,7 +34,7 @@ func SignupAction(c *gin.Context) {
 	}
 
 	if !emoji.ValidNamePart(username) {
-		fail("Username must be 1-64 characters of lowercase letters or digits.")
+		fail("Username must be a lowercase identifier: a letter, then letters, digits or _.")
 		return
 	}
 	if reason, err := orgs.NameTakenReason(username); err != nil {
