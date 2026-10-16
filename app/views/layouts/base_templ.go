@@ -148,7 +148,7 @@ func Base(title string, username string, admin bool, description ...string) temp
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</head><body><header class=\"topnav\"><a class=\"brand\" href=\"/\">Emo Registry<span class=\"accent\">.</span></a><form class=\"nav-search\" action=\"/search\" method=\"get\"><input type=\"search\" name=\"q\" placeholder=\"Search packages…\"></form><nav>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</head><body><header class=\"topnav\"><a class=\"brand\" href=\"/\">Emo Registry</a><form class=\"nav-search\" action=\"/search\" method=\"get\"><input type=\"search\" name=\"q\" placeholder=\"Search packages…\"></form><nav>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
