@@ -9,7 +9,7 @@ import (
 // Index renders the registry home page with the newest and most downloaded
 // packages.
 templ Index(username string, admin bool, latest []*models.Package, top []*models.Package) {
-	@layouts.Base("Emo Registry", username, admin, "The package registry for the Emo programming language.") {
+	@layouts.Base("Emo Registry", username, admin, layouts.BaseOptions{Description: "The package registry for the Emo programming language.", ShowSidebar: true}) {
 		<main class="er-page">
 			@packages.CardStyles()
 			<style>

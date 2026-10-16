@@ -95,7 +95,7 @@ func Index(username string, admin bool, latest []*models.Package, top []*models.
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base("Emo Registry", username, admin, "The package registry for the Emo programming language.").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base("Emo Registry", username, admin, layouts.BaseOptions{Description: "The package registry for the Emo programming language.", ShowSidebar: true}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

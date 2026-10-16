@@ -459,7 +459,7 @@ func Show(username string, admin bool, pkg *models.Package, versions []*models.V
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base(pkg.FullName(), username, admin, pkg.Description).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base(pkg.FullName(), username, admin, layouts.BaseOptions{Description: pkg.Description}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

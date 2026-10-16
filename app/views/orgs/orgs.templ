@@ -81,7 +81,7 @@ templ New(username string, admin bool, err string, name string, displayName stri
 // Show renders the organization page: members, packages, and — for owners —
 // the member management forms.
 templ Show(username string, admin bool, org *models.Organization, members []orgs.MemberView, pkgs []*models.Package, isOwner bool, err string) {
-	@layouts.Base(org.Name, username, admin, org.DisplayName) {
+	@layouts.Base(org.Name, username, admin, layouts.BaseOptions{Description: org.DisplayName}) {
 		<main class="er-page">
 			@packages.CardStyles()
 			<style>

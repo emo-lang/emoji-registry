@@ -108,7 +108,7 @@ func Profile(viewerName string, admin bool, profileUser *models.User, pkgs []*mo
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base(profileUser.Username, viewerName, admin, "Packages published by "+profileUser.Username).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base(profileUser.Username, viewerName, admin, layouts.BaseOptions{Description: "Packages published by " + profileUser.Username}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

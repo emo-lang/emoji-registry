@@ -5,25 +5,46 @@ import (
 	"github.com/daqing/airway/lib/utils"
 )
 
+// BaseOptions tunes the shared document shell for a single page.
+type BaseOptions struct {
+	// Description, when set, is emitted as the meta description and
+	// og:description.
+	Description string
+	// ShowSidebar renders the right-hand tips column. It is opt-in: only
+	// pages where the publishing hints genuinely help (the home page) set it.
+	ShowSidebar bool
+}
+
+// baseOptions unwraps the optional BaseOptions argument, treating a missing
+// one as the zero value.
+func baseOptions(opts []BaseOptions) BaseOptions {
+	if len(opts) > 0 {
+		return opts[0]
+	}
+	return BaseOptions{}
+}
+
 // Base renders the shared HTML document shell with the registry top
 // navigation. username is empty when the visitor is not logged in; admin
-// shows the /admin link. Page templates wrap their content in this
-// component, e.g.:
+// shows the /admin link. The optional opts carry per-page tweaks — a meta
+// description and whether to show the tips sidebar. Page templates wrap their
+// content in this component, e.g.:
 //
 //	@layouts.Base("My Title", "", false) {
 //		<p>Page body…</p>
 //	}
-templ Base(title string, username string, admin bool, description ...string) {
+templ Base(title string, username string, admin bool, opts ...BaseOptions) {
+	{{ o := baseOptions(opts) }}
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ title }</title>
-			if len(description) > 0 {
-				<meta name="description" content={ description[0] }/>
+			if o.Description != "" {
+				<meta name="description" content={ o.Description }/>
 				<meta property="og:title" content={ title }/>
-				<meta property="og:description" content={ description[0] }/>
+				<meta property="og:description" content={ o.Description }/>
 				<meta property="og:type" content="website"/>
 				<meta name="theme-color" content="#101319"/>
 			}
@@ -126,7 +147,7 @@ templ Base(title string, username string, admin bool, description ...string) {
 			<header class="topnav">
 				<a class="brand" href="/">Emo Registry</a>
 				<form class="nav-search" action="/search" method="get">
-					<input type="search" name="q" placeholder="Search packages…"/>
+					<input type="search" autocomplete="off" name="q" placeholder="Search packages…"/>
 				</form>
 				<nav>
 					if username != "" {
@@ -147,7 +168,9 @@ templ Base(title string, username string, admin bool, description ...string) {
 			</header>
 			<div class="er-shell">
 				{ children... }
-				@Sidebar()
+				if o.ShowSidebar {
+					@Sidebar()
+				}
 			</div>
 		</body>
 	</html>

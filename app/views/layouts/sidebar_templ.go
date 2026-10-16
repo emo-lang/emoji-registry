@@ -8,9 +8,10 @@ package layouts
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// Sidebar renders the right-hand tips column shared by every page: short,
-// static hints about scopes, tokens and publishing that a newcomer would
-// otherwise have to discover the hard way.
+// Sidebar renders the right-hand tips column: short, static hints about
+// scopes, tokens and publishing that a newcomer would otherwise have to
+// discover the hard way. It is shown only where BaseOptions.ShowSidebar is
+// set (the home page).
 func Sidebar() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -32,7 +33,7 @@ func Sidebar() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<aside class=\"er-sidebar\"><div class=\"tip-card\"><h2>Tips</h2><ul class=\"tip-list\"><li>Your username is a package scope — publish <code>yourname/pkg</code> right away; create an organization only to share a scope with a team.</li><li>Create an API token on the <a href=\"/tokens\">Tokens</a> page to run <code>emo publish</code>.</li><li>Mark a package private to hide it from everyone outside your team.</li><li>Versions are immutable once published — yank a version instead of overwriting it.</li></ul></div></aside>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<aside class=\"er-sidebar\"><div class=\"tip-card\"><h2>Tips</h2><ul class=\"tip-list\"><li>Your username is a package scope — publish <code>yourname/pkg</code> right away; create an organization only to share a scope with a team.</li><li>Create an API token on the <a href=\"/tokens\" style=\"color: green;\">Tokens</a> page to run <code>emo publish</code>.</li><li>Mark a package private to hide it from everyone outside your team.</li><li>Versions are immutable once published — yank a version instead of overwriting it.</li></ul></div></aside>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

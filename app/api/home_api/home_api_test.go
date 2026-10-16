@@ -49,6 +49,7 @@ func TestIndexActionRendersHomePage(t *testing.T) {
 		"Emo Registry",
 		"Recently published",
 		"Most downloaded",
+		`class="tip-card"`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("expected body to contain %q, got %q", want, body)

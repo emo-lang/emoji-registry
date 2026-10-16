@@ -15,7 +15,7 @@ import (
 // last-30-days download series, oldest first. readme is the rendered README
 // of latest (nil when absent). canManage shows the visibility form.
 templ Show(username string, admin bool, pkg *models.Package, versions []*models.Version, latest *models.Version, latestDeps map[string]string, ownerIsOrg bool, daily []stats.DayCount, readme templ.Component, canManage bool) {
-	@layouts.Base(pkg.FullName(), username, admin, pkg.Description) {
+	@layouts.Base(pkg.FullName(), username, admin, layouts.BaseOptions{Description: pkg.Description}) {
 		<main class="er-page">
 			<style>
 				.pkg-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }

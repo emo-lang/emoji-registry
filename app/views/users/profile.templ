@@ -12,7 +12,7 @@ import (
 // packages it has published. viewerName/admin describe the visitor (empty and
 // false when anonymous) and drive the shared top navigation.
 templ Profile(viewerName string, admin bool, profileUser *models.User, pkgs []*models.Package) {
-	@layouts.Base(profileUser.Username, viewerName, admin, "Packages published by "+profileUser.Username) {
+	@layouts.Base(profileUser.Username, viewerName, admin, layouts.BaseOptions{Description: "Packages published by " + profileUser.Username}) {
 		<main class="er-page">
 			@packages.CardStyles()
 			<style>
