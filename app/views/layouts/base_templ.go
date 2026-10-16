@@ -104,7 +104,7 @@ func Base(title string, username string, admin bool, description ...string) temp
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<style>\n\t\t\t\t:root {\n\t\t\t\t\t--er-bg: #fafaf7; --er-ink: #232820; --er-muted: #6d7369;\n\t\t\t\t\t--er-line: #dfe2d7; --er-accent: #5d763c; --er-code-bg: #f0f2ea;\n\t\t\t\t}\n\t\t\t\t@media (prefers-color-scheme: dark) {\n\t\t\t\t\t:root {\n\t\t\t\t\t\t--er-bg: #101319; --er-ink: #f3f4ef; --er-muted: #9a9eaa;\n\t\t\t\t\t\t--er-line: #2b303a; --er-accent: #c2f16b; --er-code-bg: #171b23;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tbody {\n\t\t\t\t\tposition: relative;\n\t\t\t\t\tfont-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n\t\t\t\t\tbackground: var(--er-bg); color: var(--er-ink);\n\t\t\t\t\tpadding: 0; margin: 0;\n\t\t\t\t\t-webkit-font-smoothing: antialiased;\n\t\t\t\t}\n\t\t\t\t.topnav {\n\t\t\t\t\tdisplay: flex; align-items: center; gap: 18px;\n\t\t\t\t\tpadding: 12px 24px; border-bottom: 1px solid var(--er-line);\n\t\t\t\t}\n\t\t\t\t.topnav a { color: var(--er-ink); text-decoration: none; }\n\t\t\t\t.topnav .brand { font-weight: 700; letter-spacing: -0.5px; }\n\t\t\t\t.topnav .brand .accent { color: var(--er-accent); }\n\t\t\t\t.topnav .nav-search { flex: 1; max-width: 420px; }\n\t\t\t\t.topnav .nav-search input {\n\t\t\t\t\twidth: 100%; padding: 6px 12px; font-size: 14px;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-bg); color: var(--er-ink);\n\t\t\t\t}\n\t\t\t\t.topnav nav { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 14px; }\n\t\t\t\t.topnav .nav-user { color: var(--er-muted); }\n\t\t\t\t.topnav form.inline { display: inline; margin: 0; }\n\t\t\t\t.topnav form.inline button {\n\t\t\t\t\tbackground: none; border: none; padding: 0; cursor: pointer;\n\t\t\t\t\tcolor: var(--er-ink); font-size: 14px;\n\t\t\t\t}\n\t\t\t\t.er-page { width: min(880px, calc(100% - 48px)); margin: 0 auto; padding-block: 40px; }\n\t\t\t\t.er-muted { color: var(--er-muted); }\n\t\t\t\t.er-code {\n\t\t\t\t\tfont-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace;\n\t\t\t\t\tfont-size: .9em; background: var(--er-code-bg); border: 1px solid var(--er-line);\n\t\t\t\t\tborder-radius: 6px; padding: 12px 16px; white-space: pre; overflow-x: auto;\n\t\t\t\t}\n\t\t\t\t.er-btn {\n\t\t\t\t\tdisplay: inline-block; padding: 6px 14px; font-size: 14px; cursor: pointer;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-code-bg); color: var(--er-ink); text-decoration: none;\n\t\t\t\t}\n\t\t\t\t.er-input {\n\t\t\t\t\twidth: 100%; padding: 8px 12px; font-size: 14px; margin-top: 4px;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-bg); color: var(--er-ink);\n\t\t\t\t}\n\t\t\t\t.er-field { margin-bottom: 16px; }\n\t\t\t\t.er-field label { font-size: 13px; color: var(--er-muted); }\n\t\t\t\t.er-error {\n\t\t\t\t\tpadding: 10px 14px; margin-bottom: 16px; font-size: 14px;\n\t\t\t\t\tborder: 1px solid #c66; border-radius: 6px; color: #b3453a;\n\t\t\t\t}\n\t\t\t</style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<style>\n\t\t\t\t:root {\n\t\t\t\t\t--er-bg: #fafaf7; --er-ink: #232820; --er-muted: #6d7369;\n\t\t\t\t\t--er-line: #dfe2d7; --er-accent: #5d763c; --er-code-bg: #f0f2ea;\n\t\t\t\t}\n\t\t\t\t@media (prefers-color-scheme: dark) {\n\t\t\t\t\t:root {\n\t\t\t\t\t\t--er-bg: #101319; --er-ink: #f3f4ef; --er-muted: #9a9eaa;\n\t\t\t\t\t\t--er-line: #2b303a; --er-accent: #c2f16b; --er-code-bg: #171b23;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tbody {\n\t\t\t\t\tposition: relative;\n\t\t\t\t\tfont-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n\t\t\t\t\tbackground: var(--er-bg); color: var(--er-ink);\n\t\t\t\t\tpadding: 0; margin: 0;\n\t\t\t\t\t-webkit-font-smoothing: antialiased;\n\t\t\t\t}\n\t\t\t\t.topnav {\n\t\t\t\t\tdisplay: flex; align-items: center; gap: 18px;\n\t\t\t\t\tpadding: 12px 24px; border-bottom: 1px solid var(--er-line);\n\t\t\t\t}\n\t\t\t\t.topnav a { color: var(--er-ink); text-decoration: none; }\n\t\t\t\t.topnav .brand { font-weight: 700; letter-spacing: -0.5px; }\n\t\t\t\t.topnav .brand .accent { color: var(--er-accent); }\n\t\t\t\t.topnav .nav-search { flex: 1; max-width: 420px; }\n\t\t\t\t.topnav .nav-search input {\n\t\t\t\t\twidth: 100%; padding: 6px 12px; font-size: 14px;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-bg); color: var(--er-ink);\n\t\t\t\t}\n\t\t\t\t.topnav nav { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 14px; }\n\t\t\t\t.topnav .nav-user { color: var(--er-muted); }\n\t\t\t\t.topnav form.inline { display: inline; margin: 0; }\n\t\t\t\t.topnav form.inline button {\n\t\t\t\t\tbackground: none; border: none; padding: 0; cursor: pointer;\n\t\t\t\t\tcolor: var(--er-ink); font-size: 14px;\n\t\t\t\t}\n\t\t\t\t.er-shell {\n\t\t\t\t\tdisplay: flex; gap: 40px; align-items: flex-start; justify-content: center;\n\t\t\t\t\twidth: min(1120px, calc(100% - 48px)); margin: 0 auto;\n\t\t\t\t}\n\t\t\t\t.er-page { flex: 1 1 auto; min-width: 0; padding-block: 40px; }\n\t\t\t\t.er-sidebar { flex: 0 0 260px; padding-block: 40px; }\n\t\t\t\t.tip-card {\n\t\t\t\t\tposition: sticky; top: 24px;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 10px; padding: 16px 18px;\n\t\t\t\t}\n\t\t\t\t.tip-card h2 {\n\t\t\t\t\tmargin: 0 0 10px; font-size: 13px; font-weight: 650;\n\t\t\t\t\tletter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent);\n\t\t\t\t}\n\t\t\t\t.tip-list { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 13px; color: var(--er-muted); }\n\t\t\t\t.tip-list li { line-height: 1.5; }\n\t\t\t\t@media (max-width: 900px) {\n\t\t\t\t\t.er-shell { flex-direction: column; gap: 0; }\n\t\t\t\t\t.er-page { width: 100%; }\n\t\t\t\t\t.er-sidebar { flex: none; width: 100%; padding-top: 0; }\n\t\t\t\t}\n\t\t\t\t.er-muted { color: var(--er-muted); }\n\t\t\t\tcode {\n\t\t\t\t\tfont-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace;\n\t\t\t\t\tfont-size: .9em; background: var(--er-code-bg);\n\t\t\t\t\tborder-radius: 5px; padding: 1px 5px;\n\t\t\t\t}\n\t\t\t\t.er-code {\n\t\t\t\t\tfont-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace;\n\t\t\t\t\tfont-size: .9em; background: var(--er-code-bg); border: 1px solid var(--er-line);\n\t\t\t\t\tborder-radius: 6px; padding: 12px 16px; white-space: pre; overflow-x: auto;\n\t\t\t\t}\n\t\t\t\t.er-btn {\n\t\t\t\t\tdisplay: inline-block; padding: 6px 14px; font-size: 14px; cursor: pointer;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-code-bg); color: var(--er-ink); text-decoration: none;\n\t\t\t\t}\n\t\t\t\t.er-input {\n\t\t\t\t\twidth: 100%; padding: 8px 12px; font-size: 14px; margin-top: 4px;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 6px;\n\t\t\t\t\tbackground: var(--er-bg); color: var(--er-ink);\n\t\t\t\t}\n\t\t\t\t.er-field { margin-bottom: 16px; }\n\t\t\t\t.er-field label { font-size: 13px; color: var(--er-muted); }\n\t\t\t\t.er-error {\n\t\t\t\t\tpadding: 10px 14px; margin-bottom: 16px; font-size: 14px;\n\t\t\t\t\tborder: 1px solid #c66; border-radius: 6px; color: #b3453a;\n\t\t\t\t}\n\t\t\t</style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -120,7 +120,7 @@ func Base(title string, username string, admin bool, description ...string) temp
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(utils.URLPrefix() + "/assets/livereload.js"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layouts/base.templ`, Line: 94, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layouts/base.templ`, Line: 119, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 			if templ_7745c5c3_Err != nil {
@@ -133,7 +133,7 @@ func Base(title string, username string, admin bool, description ...string) temp
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(utils.URLPrefix() + "/ws")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layouts/base.templ`, Line: 94, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layouts/base.templ`, Line: 119, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 			if templ_7745c5c3_Err != nil {
@@ -160,7 +160,7 @@ func Base(title string, username string, admin bool, description ...string) temp
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layouts/base.templ`, Line: 106, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layouts/base.templ`, Line: 131, Col: 39}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -186,7 +186,7 @@ func Base(title string, username string, admin bool, description ...string) temp
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</nav></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</nav></header><div class=\"er-shell\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -194,7 +194,11 @@ func Base(title string, username string, admin bool, description ...string) temp
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</body></html>")
+		templ_7745c5c3_Err = Sidebar().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

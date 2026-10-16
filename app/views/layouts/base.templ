@@ -65,8 +65,33 @@ templ Base(title string, username string, admin bool, description ...string) {
 					background: none; border: none; padding: 0; cursor: pointer;
 					color: var(--er-ink); font-size: 14px;
 				}
-				.er-page { width: min(880px, calc(100% - 48px)); margin: 0 auto; padding-block: 40px; }
+				.er-shell {
+					display: flex; gap: 40px; align-items: flex-start; justify-content: center;
+					width: min(1120px, calc(100% - 48px)); margin: 0 auto;
+				}
+				.er-page { flex: 1 1 auto; min-width: 0; padding-block: 40px; }
+				.er-sidebar { flex: 0 0 260px; padding-block: 40px; }
+				.tip-card {
+					position: sticky; top: 24px;
+					border: 1px solid var(--er-line); border-radius: 10px; padding: 16px 18px;
+				}
+				.tip-card h2 {
+					margin: 0 0 10px; font-size: 13px; font-weight: 650;
+					letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent);
+				}
+				.tip-list { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 13px; color: var(--er-muted); }
+				.tip-list li { line-height: 1.5; }
+				@media (max-width: 900px) {
+					.er-shell { flex-direction: column; gap: 0; }
+					.er-page { width: 100%; }
+					.er-sidebar { flex: none; width: 100%; padding-top: 0; }
+				}
 				.er-muted { color: var(--er-muted); }
+				code {
+					font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+					font-size: .9em; background: var(--er-code-bg);
+					border-radius: 5px; padding: 1px 5px;
+				}
 				.er-code {
 					font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 					font-size: .9em; background: var(--er-code-bg); border: 1px solid var(--er-line);
@@ -118,7 +143,10 @@ templ Base(title string, username string, admin bool, description ...string) {
 					}
 				</nav>
 			</header>
-			{ children... }
+			<div class="er-shell">
+				{ children... }
+				@Sidebar()
+			</div>
 		</body>
 	</html>
 }
