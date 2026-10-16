@@ -1,0 +1,30 @@
+package admin
+
+import (
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// Login renders the env-credentials admin sign-in form. err is non-empty
+// when a previous submission failed; username echoes the last attempt.
+templ Login(err string, username string) {
+	@layouts.Base("Admin log in", "", false) {
+		<main class="er-page" style="max-width: 420px;">
+			<h1>Admin log in</h1>
+			<p class="er-muted">Registry admin console.</p>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<form method="post" action="/admin/login">
+				<div class="er-field">
+					<label for="username">Username</label>
+					<input class="er-input" id="username" name="username" value={ username } required autofocus/>
+				</div>
+				<div class="er-field">
+					<label for="password">Password</label>
+					<input class="er-input" id="password" type="password" name="password" required/>
+				</div>
+				<button class="er-btn" type="submit">Log in</button>
+			</form>
+		</main>
+	}
+}

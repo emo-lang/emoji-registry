@@ -1,0 +1,32 @@
+package admin
+
+// SubNav renders the admin area's local navigation. envAdmin is true when the
+// visitor signed in through /admin/login (no site account) and therefore has
+// no top-navigation logout.
+templ SubNav(active string, envAdmin bool) {
+	<style>
+		.admin-nav {
+			display: flex; align-items: center; gap: 16px;
+			padding: 10px 0 16px; border-bottom: 1px solid var(--er-line);
+			margin-bottom: 24px; font-size: 14px;
+		}
+		.admin-nav a { color: var(--er-muted); text-decoration: none; }
+		.admin-nav a:hover { color: var(--er-accent); }
+		.admin-nav a.active { color: var(--er-ink); font-weight: 650; }
+		.admin-nav form { margin-left: auto; }
+		.admin-nav button {
+			background: none; border: none; padding: 0; cursor: pointer;
+			color: var(--er-muted); font-size: 14px;
+		}
+		.admin-nav button:hover { color: var(--er-accent); }
+	</style>
+	<nav class="admin-nav">
+		<a href="/admin" class={ templ.KV("active", active == "packages") }>Packages</a>
+		<a href="/admin/reserved" class={ templ.KV("active", active == "reserved") }>Reserved names</a>
+		if envAdmin {
+			<form method="post" action="/admin/logout">
+				<button type="submit">Log out</button>
+			</form>
+		}
+	</nav>
+}

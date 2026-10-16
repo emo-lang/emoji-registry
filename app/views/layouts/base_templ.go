@@ -205,7 +205,7 @@ func Base(title string, username string, admin bool, opts ...BaseOptions) templ.
 				return templ_7745c5c3_Err
 			}
 			if admin {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a href=\"/admin/reserved\">Admin</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a href=\"/admin\">Admin</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -215,12 +215,18 @@ func Base(title string, username string, admin bool, opts ...BaseOptions) templ.
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<a href=\"/login\">Login</a> <a href=\"/signup\">Signup</a> ")
+			if admin {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<a href=\"/admin\">Admin</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " <a href=\"/login\">Login</a> <a href=\"/signup\">Signup</a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<button class=\"theme-toggle\" type=\"button\" id=\"theme-toggle\" aria-label=\"Toggle dark mode\" title=\"Toggle dark mode\"><svg class=\"icon-moon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"></path></svg> <svg class=\"icon-sun\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"></circle> <path d=\"M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41\"></path></svg></button></nav></header><div class=\"er-shell\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button class=\"theme-toggle\" type=\"button\" id=\"theme-toggle\" aria-label=\"Toggle dark mode\" title=\"Toggle dark mode\"><svg class=\"icon-moon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"></path></svg> <svg class=\"icon-sun\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"></circle> <path d=\"M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41\"></path></svg></button></nav></header><div class=\"er-shell\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -234,7 +240,7 @@ func Base(title string, username string, admin bool, opts ...BaseOptions) templ.
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div><script>\n\t\t\t\t// Flip between light and dark, remembering the choice.\n\t\t\t\t(function () {\n\t\t\t\t\tvar button = document.getElementById(\"theme-toggle\");\n\t\t\t\t\tif (!button) return;\n\t\t\t\t\tbutton.addEventListener(\"click\", function () {\n\t\t\t\t\t\tvar next = document.documentElement.dataset.theme === \"dark\" ? \"light\" : \"dark\";\n\t\t\t\t\t\tdocument.documentElement.dataset.theme = next;\n\t\t\t\t\t\ttry { localStorage.setItem(\"theme\", next); } catch (e) {}\n\t\t\t\t\t});\n\t\t\t\t})();\n\t\t\t</script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div><script>\n\t\t\t\t// Flip between light and dark, remembering the choice.\n\t\t\t\t(function () {\n\t\t\t\t\tvar button = document.getElementById(\"theme-toggle\");\n\t\t\t\t\tif (!button) return;\n\t\t\t\t\tbutton.addEventListener(\"click\", function () {\n\t\t\t\t\t\tvar next = document.documentElement.dataset.theme === \"dark\" ? \"light\" : \"dark\";\n\t\t\t\t\t\tdocument.documentElement.dataset.theme = next;\n\t\t\t\t\t\ttry { localStorage.setItem(\"theme\", next); } catch (e) {}\n\t\t\t\t\t});\n\t\t\t\t})();\n\t\t\t</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

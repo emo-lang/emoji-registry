@@ -48,63 +48,58 @@ func Reserved(username string, adminFlag bool, rows []*models.ReservedName, buil
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"er-page\"><style>\n\t\t\t\t.res-row { display: flex; gap: 14px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }\n\t\t\t\t.res-row .name { font-family: monospace; font-weight: 650; }\n\t\t\t\t.res-row .meta { color: var(--er-muted); font-size: 13px; }\n\t\t\t\t.res-row form { margin-left: auto; }\n\t\t\t\t.builtin-grid { display: flex; flex-wrap: wrap; gap: 8px; }\n\t\t\t\t.builtin-grid .chip {\n\t\t\t\t\tfont-family: monospace; font-size: 13px; padding: 2px 10px;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 999px; color: var(--er-muted);\n\t\t\t\t}\n\t\t\t\t.add-form { display: flex; gap: 10px; align-items: end; margin-top: 12px; }\n\t\t\t\t.add-form .er-field { margin-bottom: 0; flex: 1; }\n\t\t\t</style><h1>Reserved names</h1><p class=\"er-muted\">Reserved names cannot be registered as usernames, organizations or package scopes. The built-in stdlib list is compiled in and cannot be changed at runtime.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"er-page\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = SubNav("reserved", username == "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<style>\n\t\t\t\t.res-row { display: flex; gap: 14px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--er-line); font-size: 14px; }\n\t\t\t\t.res-row .name { font-family: monospace; font-weight: 650; }\n\t\t\t\t.res-row .meta { color: var(--er-muted); font-size: 13px; }\n\t\t\t\t.res-row form { margin-left: auto; }\n\t\t\t\t.builtin-grid { display: flex; flex-wrap: wrap; gap: 8px; }\n\t\t\t\t.builtin-grid .chip {\n\t\t\t\t\tfont-family: monospace; font-size: 13px; padding: 2px 10px;\n\t\t\t\t\tborder: 1px solid var(--er-line); border-radius: 999px; color: var(--er-muted);\n\t\t\t\t}\n\t\t\t\t.add-form { display: flex; gap: 10px; align-items: end; margin-top: 12px; }\n\t\t\t\t.add-form .er-field { margin-bottom: 0; flex: 1; }\n\t\t\t</style><h1>Reserved names</h1><p class=\"er-muted\">Reserved names cannot be registered as usernames, organizations or package scopes. The built-in stdlib list is compiled in and cannot be changed at runtime.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if err != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"er-error\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"er-error\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 32, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 33, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<section class=\"pkg-section\"><h2>Managed</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section class=\"pkg-section\"><h2>Managed</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(rows) == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"er-muted\">No managed entries yet.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<p class=\"er-muted\">No managed entries yet.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			for _, row := range rows {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"res-row\"><span class=\"name\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"res-row\"><span class=\"name\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(row.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 41, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 42, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span> <span class=\"meta\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(row.Reason)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 42, Col: 37}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -112,57 +107,70 @@ func Reserved(username string, adminFlag bool, rows []*models.ReservedName, buil
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(row.Reason)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 43, Col: 37}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span> <span class=\"meta\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(row.CreatedAt.Format("2006-01-02"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 43, Col: 61}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 44, Col: 61}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span><form method=\"post\" action=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span><form method=\"post\" action=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 templ.SafeURL
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/admin/reserved/" + idString(row.ID) + "/delete"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 44, Col: 99}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 45, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"><button class=\"er-btn\" type=\"submit\">Delete</button></form></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><button class=\"er-btn\" type=\"submit\">Delete</button></form></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<form class=\"add-form\" method=\"post\" action=\"/admin/reserved\"><div class=\"er-field\"><label for=\"name\">Name</label> <input class=\"er-input\" id=\"name\" name=\"name\" required maxlength=\"64\" pattern=\"[a-z][a-z0-9_]*\"></div><div class=\"er-field\"><label for=\"reason\">Reason</label> <input class=\"er-input\" id=\"reason\" name=\"reason\" maxlength=\"255\" placeholder=\"why reserved\"></div><button class=\"er-btn\" type=\"submit\">Reserve</button></form></section><section class=\"pkg-section\" style=\"margin-top: 32px;\"><h2>Built-in (stdlib)</h2><div class=\"builtin-grid\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<form class=\"add-form\" method=\"post\" action=\"/admin/reserved\"><div class=\"er-field\"><label for=\"name\">Name</label> <input class=\"er-input\" id=\"name\" name=\"name\" required maxlength=\"64\" pattern=\"[a-z][a-z0-9_]*\"></div><div class=\"er-field\"><label for=\"reason\">Reason</label> <input class=\"er-input\" id=\"reason\" name=\"reason\" maxlength=\"255\" placeholder=\"why reserved\"></div><button class=\"er-btn\" type=\"submit\">Reserve</button></form></section><section class=\"pkg-section\" style=\"margin-top: 32px;\"><h2>Built-in (stdlib)</h2><div class=\"builtin-grid\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, name := range builtin {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span class=\"chip\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"chip\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 65, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/reserved.templ`, Line: 66, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></section></main>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></section></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

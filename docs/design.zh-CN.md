@@ -296,7 +296,11 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 
 - 版本不可变 + yank 不删档 → 供应链可审计。
 - 短名保留名单在注册时强制;DB 管理的部分由管理员在 `/admin/reserved` 维护
-  (第一个管理员用 `admin:grant <username>` 授予;内置 stdlib 名单编译期固定、只读)。
+  (内置 stdlib 名单编译期固定、只读)。
+- 管理后台 `/admin`(列出全部包,按创建时间倒序,含私有包;非管理员一律 404)。
+  管理员身份两种:`admin:grant <username>` 提升的站点账号,或在 `/admin/login`
+  用 `ADMIN_USERNAME`/`ADMIN_PASSWORD` 登录——签发的 cookie 以从凭据派生的密钥做
+  HMAC 签名,任一凭据改动即令全部既有会话失效。
 - 上传大小限制(纯源码包 10MB 足够);归档内白名单只允许 `.emo`/`.c`/`.h` 源文件
   (外加根部 `README.md`)。
 - 限流:发布按 token 用户(30 次/小时),signup/login 与搜索按 IP(10 次/分钟、

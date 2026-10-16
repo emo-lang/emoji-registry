@@ -325,8 +325,13 @@ This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
 
 - Immutable versions + yank-does-not-delete → auditable supply chain.
 - Reserved short-name list enforced at registration; the DB-managed list is edited
-  by admins at `/admin/reserved` (the first admin is granted with
-  `admin:grant <username>`; the built-in stdlib list is compiled in and read-only).
+  by admins at `/admin/reserved` (the built-in stdlib list is compiled in and
+  read-only).
+- Admin console at `/admin` (all packages listed newest first, private included;
+  non-admins get 404). An admin is either a site account promoted with
+  `admin:grant <username>`, or the `ADMIN_USERNAME`/`ADMIN_PASSWORD` credentials
+  signed in at `/admin/login` — the issued cookie is HMAC-signed with a key
+  derived from those credentials, so rotating either invalidates every session.
 - Upload size limit (10 MB is generous for source-only packages); only `.emo`/`.c`/`.h`
   sources (plus a root README.md) are whitelisted inside archives.
 - Rate limiting: per-token-user on publish (30/hour), per-IP on signup/login
