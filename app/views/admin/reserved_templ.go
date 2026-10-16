@@ -139,7 +139,7 @@ func Reserved(username string, adminFlag bool, rows []*models.ReservedName, buil
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<form class=\"add-form\" method=\"post\" action=\"/admin/reserved\"><div class=\"er-field\"><label for=\"name\">Name</label> <input class=\"er-input\" id=\"name\" name=\"name\" required maxlength=\"64\" pattern=\"[a-z0-9_\\-]+\"></div><div class=\"er-field\"><label for=\"reason\">Reason</label> <input class=\"er-input\" id=\"reason\" name=\"reason\" maxlength=\"255\" placeholder=\"why reserved\"></div><button class=\"er-btn\" type=\"submit\">Reserve</button></form></section><section class=\"pkg-section\" style=\"margin-top: 32px;\"><h2>Built-in (stdlib)</h2><div class=\"builtin-grid\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<form class=\"add-form\" method=\"post\" action=\"/admin/reserved\"><div class=\"er-field\"><label for=\"name\">Name</label> <input class=\"er-input\" id=\"name\" name=\"name\" required maxlength=\"64\" pattern=\"[a-z0-9]+\"></div><div class=\"er-field\"><label for=\"reason\">Reason</label> <input class=\"er-input\" id=\"reason\" name=\"reason\" maxlength=\"255\" placeholder=\"why reserved\"></div><button class=\"er-btn\" type=\"submit\">Reserve</button></form></section><section class=\"pkg-section\" style=\"margin-top: 32px;\"><h2>Built-in (stdlib)</h2><div class=\"builtin-grid\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

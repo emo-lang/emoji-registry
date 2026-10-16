@@ -33,7 +33,7 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   `EMO_REGISTRY` pointed at a self-hosted instance
 - Protocol B, the frozen JSON API under `/api/v1` (version lists, batch
   dependency queries, package metadata, publish/yank)
-- Archive downloads at `/downloads/<owner>--<name>--<version>.emoji` with
+- Archive downloads at `/downloads/<owner>-<name>-<version>.emoji` with
   `Digest` / `ETag` integrity headers
 - Download statistics: a per-version, per-day `downloads` aggregate; with
   `REDIS` configured, downloads are counted in Redis and flushed to the
@@ -100,7 +100,7 @@ curl -X POST http://127.0.0.1:1905/api/v1/tokens \
 # => {"token":"emo_..."}
 
 # 3. Build a .emoji archive — a gzip tar whose name is
-#    <owner>--<name>--<version>.emoji, containing package.emo + the
+#    <owner>-<name>-<version>.emoji, containing package.emo + the
 #    .emo/.c/.h sources
 mkdir hello && cd hello
 cat > package.emo <<'EOF'
@@ -110,14 +110,14 @@ package {
 }
 EOF
 echo 'let main = 1' > hello.emo
-tar -czf ../foo--hello--0.1.0.emoji package.emo hello.emo
+tar -czf ../foo-hello-0.1.0.emoji package.emo hello.emo
 cd ..
 
 # 4. Publish
 curl -X POST http://127.0.0.1:1905/api/v1/packages \
   -H "Authorization: Bearer emo_..." \
   -H 'Content-Type: application/octet-stream' \
-  --data-binary @foo--hello--0.1.0.emoji
+  --data-binary @foo-hello-0.1.0.emoji
 ```
 
 ### Personal account vs. organization
@@ -162,7 +162,7 @@ real HTTP status. Full request/response schemas: docs/design.md §5.
 | `PATCH /api/v1/packages/:owner/:name` | Bearer `push` (owner only) | edit description/license/homepage/repository |
 | `GET /api/v1/packages/:owner/:name/versions` | — | version list, ascending semver (B.1) |
 | `GET /api/v1/dependencies?packages=a/b,c/d` | — | batch dependency query (B.2) |
-| `GET /downloads/:owner--:name--:version.emoji` | — | archive download (B.3) |
+| `GET /downloads/:owner-:name-:version.emoji` | — | archive download (B.3) |
 | `POST /api/v1/orgs` | session or basic | create an organization |
 | `GET /api/v1/orgs/:name` | — | organization info + members |
 | `POST /api/v1/orgs/:name/members` | session or basic (org owner) | add a member |

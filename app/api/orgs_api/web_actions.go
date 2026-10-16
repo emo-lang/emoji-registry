@@ -66,7 +66,7 @@ func CreateOrgWebAction(c *gin.Context) {
 	}
 
 	if !emoji.ValidNamePart(name) {
-		fail("Name must be 1-64 characters of lowercase letters, digits, _ or -.")
+		fail("Name must be 1-64 characters of lowercase letters or digits.")
 		return
 	}
 	if reason, err := orgs.NameTakenReason(name); err != nil {

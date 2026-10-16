@@ -31,7 +31,7 @@ func SignupAction(c *gin.Context) {
 	input.Email = strings.TrimSpace(input.Email)
 
 	if !emoji.ValidNamePart(input.Username) {
-		respondError(c, http.StatusUnprocessableEntity, "invalid_params", "username must be 1-64 chars of [a-z0-9_-]")
+		respondError(c, http.StatusUnprocessableEntity, "invalid_params", "username must be 1-64 chars of [a-z0-9]")
 		return
 	}
 	if reason, err := orgs.NameTakenReason(input.Username); err != nil {

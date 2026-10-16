@@ -27,7 +27,7 @@ Emo 编译器所依赖的通信协议定义在
   现有编译器把 `EMO_REGISTRY` 指向自托管实例即可工作
 - 协议 B frozen JSON API(`/api/v1` 下的版本列表、批量依赖查询、包元信息、
   发布/yank)
-- 归档下载 `/downloads/<owner>--<name>--<version>.emoji`,带 `Digest`/`ETag`
+- 归档下载 `/downloads/<owner>-<name>-<version>.emoji`,带 `Digest`/`ETag`
   完整性响应头
 - 下载统计:按版本按日的 `downloads` 聚合表;配置了 `REDIS` 时先计数到 Redis、每分钟
   批量落库(包详情页近 30 天柱状图,元信息 API 返回 `downloads_last_30d`)
@@ -86,7 +86,7 @@ curl -X POST http://127.0.0.1:1905/api/v1/tokens \
   -d '{"name":"cli","scopes":["push","yank"]}'
 # => {"token":"emo_..."}
 
-# 3. 构造 .emoji 归档——文件名为 <owner>--<name>--<version>.emoji 的 gzip tar,
+# 3. 构造 .emoji 归档——文件名为 <owner>-<name>-<version>.emoji 的 gzip tar,
 #    内含 package.emo 与 .emo/.c/.h 源文件
 mkdir hello && cd hello
 cat > package.emo <<'EOF'
@@ -96,14 +96,14 @@ package {
 }
 EOF
 echo 'let main = 1' > hello.emo
-tar -czf ../foo--hello--0.1.0.emoji package.emo hello.emo
+tar -czf ../foo-hello-0.1.0.emoji package.emo hello.emo
 cd ..
 
 # 4. 发布
 curl -X POST http://127.0.0.1:1905/api/v1/packages \
   -H "Authorization: Bearer emo_..." \
   -H 'Content-Type: application/octet-stream' \
-  --data-binary @foo--hello--0.1.0.emoji
+  --data-binary @foo-hello-0.1.0.emoji
 ```
 
 ### 个人账号 vs 组织
@@ -145,7 +145,7 @@ emo deps resolve     # 走协议 A;指向任何自托管实例都能工作
 | `PATCH /api/v1/packages/:owner/:name` | Bearer `push`(仅属主) | 修改 description/license/homepage/repository |
 | `GET /api/v1/packages/:owner/:name/versions` | 无 | 版本列表,semver 升序(B.1) |
 | `GET /api/v1/dependencies?packages=a/b,c/d` | 无 | 批量依赖查询(B.2) |
-| `GET /downloads/:owner--:name--:version.emoji` | 无 | 归档下载(B.3) |
+| `GET /downloads/:owner-:name-:version.emoji` | 无 | 归档下载(B.3) |
 | `POST /api/v1/orgs` | session 或 basic | 创建组织 |
 | `GET /api/v1/orgs/:name` | 无 | 组织信息 + 成员列表 |
 | `POST /api/v1/orgs/:name/members` | session 或 basic(组织 owner) | 加成员 |

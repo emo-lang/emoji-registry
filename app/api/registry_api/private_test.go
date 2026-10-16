@@ -38,7 +38,7 @@ func TestPrivatePackageAccess(t *testing.T) {
 	readEndpoints := []string{
 		"/api/v1/packages/alice/secret",
 		"/api/v1/packages/alice/secret/versions",
-		"/downloads/alice--secret--1.0.0.emoji",
+		"/downloads/alice-secret-1.0.0.emoji",
 		"/alice/secret/versions",
 		"/alice/secret/1.0.0/package.emo",
 	}
@@ -103,7 +103,7 @@ func TestPrivatePackageAccess(t *testing.T) {
 	if !strings.Contains(resp.Body.String(), `"yanked":true`) {
 		t.Fatalf("owner should see the yanked version: %s", resp.Body.String())
 	}
-	resp = do(t, r, http.MethodGet, "/downloads/alice--secret--1.0.0.emoji", nil, bearer(aliceReadOnly))
+	resp = do(t, r, http.MethodGet, "/downloads/alice-secret-1.0.0.emoji", nil, bearer(aliceReadOnly))
 	if resp.Code != http.StatusOK || resp.Header().Get("X-Emo-Yanked") != "true" {
 		t.Fatalf("yanked private download: %d %#v", resp.Code, resp.Header())
 	}

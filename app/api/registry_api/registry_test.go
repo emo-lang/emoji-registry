@@ -235,7 +235,7 @@ func TestFullRegistryFlow(t *testing.T) {
 	}
 
 	// B.3 download, with integrity headers.
-	resp = do(t, r, http.MethodGet, "/downloads/alice--tools--0.1.0.emoji", nil, nil)
+	resp = do(t, r, http.MethodGet, "/downloads/alice-tools-0.1.0.emoji", nil, nil)
 	if resp.Code != http.StatusOK {
 		t.Fatalf("download: expected 200, got %d: %s", resp.Code, resp.Body.String())
 	}
@@ -315,7 +315,7 @@ func TestFullRegistryFlow(t *testing.T) {
 		t.Fatalf("protocol A must 404 yanked versions, got %d", resp.Code)
 	}
 
-	resp = do(t, r, http.MethodGet, "/downloads/alice--tools--0.1.0.emoji", nil, nil)
+	resp = do(t, r, http.MethodGet, "/downloads/alice-tools-0.1.0.emoji", nil, nil)
 	if resp.Code != http.StatusOK || resp.Header().Get("X-Emo-Yanked") != "true" {
 		t.Fatalf("yanked download: %d %#v", resp.Code, resp.Header())
 	}
@@ -397,7 +397,7 @@ func TestPublishNativePackage(t *testing.T) {
 
 	// B.3: the downloaded archive carries the native sources, and unpacking
 	// it the way the client does reproduces the advertised checksum.
-	resp = do(t, r, http.MethodGet, "/downloads/alice--db--1.0.0.emoji", nil, nil)
+	resp = do(t, r, http.MethodGet, "/downloads/alice-db-1.0.0.emoji", nil, nil)
 	if resp.Code != http.StatusOK {
 		t.Fatalf("download: expected 200, got %d", resp.Code)
 	}

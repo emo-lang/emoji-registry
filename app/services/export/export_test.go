@@ -175,9 +175,9 @@ func TestExport(t *testing.T) {
 
 	// Archives are exported for every version, yanked included.
 	for _, name := range []string{
-		"alice--tools--0.1.0.emoji",
-		"alice--tools--0.2.0.emoji",
-		"alice--old--1.0.0.emoji",
+		"alice-tools-0.1.0.emoji",
+		"alice-tools-0.2.0.emoji",
+		"alice-old-1.0.0.emoji",
 	} {
 		data, err := os.ReadFile(filepath.Join(dir, "downloads", name))
 		if err != nil {

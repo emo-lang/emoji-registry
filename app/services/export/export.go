@@ -111,7 +111,7 @@ func Run(dir string) (Stats, error) {
 			if err != nil {
 				return stats, err
 			}
-			name := pkg.OwnerScope + "--" + pkg.Name + "--" + v.Version + ".emoji"
+			name := pkg.OwnerScope + "-" + pkg.Name + "-" + v.Version + ".emoji"
 			if err := writeFile(filepath.Join(dir, "downloads", name), data); err != nil {
 				return stats, err
 			}

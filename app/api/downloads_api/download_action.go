@@ -19,7 +19,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/services/stats"
 )
 
-// DownloadAction serves GET /downloads/<owner>--<name>--<version>.emoji.
+// DownloadAction serves GET /downloads/<owner>-<name>-<version>.emoji.
 // Yanked versions stay downloadable (lockfile pins must keep working) and are
 // flagged with X-Emo-Yanked.
 func DownloadAction(c *gin.Context) {
@@ -78,14 +78,17 @@ func DownloadAction(c *gin.Context) {
 	_ = stats.Record(pkg.ID, row.ID, time.Now())
 }
 
-// parseFileName splits <owner>--<name>--<version>.emoji into its parts.
+// parseFileName splits <owner>-<name>-<version>.emoji into its parts. The
+// publish-side name rule keeps owner and name free of separators and the
+// version is strict major.minor.patch, so the base is always exactly three
+// dash-separated segments.
 func parseFileName(file string) (owner, name, version string, ok bool) {
 	base, found := strings.CutSuffix(file, ".emoji")
 	if !found {
 		return "", "", "", false
 	}
 
-	parts := strings.Split(base, "--")
+	parts := strings.Split(base, "-")
 	if len(parts) != 3 {
 		return "", "", "", false
 	}

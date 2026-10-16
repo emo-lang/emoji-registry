@@ -31,7 +31,7 @@ func CreateOrgAction(c *gin.Context) {
 	displayName := strings.TrimSpace(input.DisplayName)
 
 	if !emoji.ValidNamePart(name) {
-		respondError(c, http.StatusUnprocessableEntity, "invalid_params", "name must be 1-64 chars of [a-z0-9_-]")
+		respondError(c, http.StatusUnprocessableEntity, "invalid_params", "name must be 1-64 chars of [a-z0-9]")
 		return
 	}
 	if reason, err := orgs.NameTakenReason(name); err != nil {

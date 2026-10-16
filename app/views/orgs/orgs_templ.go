@@ -247,7 +247,7 @@ func New(username string, admin bool, err string, name string, displayName strin
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" required maxlength=\"64\" pattern=\"[a-z0-9_\\-]+\"></div><div class=\"er-field\"><label for=\"display_name\">Display name (optional)</label> <input class=\"er-input\" id=\"display_name\" name=\"display_name\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" required maxlength=\"64\" pattern=\"[a-z0-9]+\"></div><div class=\"er-field\"><label for=\"display_name\">Display name (optional)</label> <input class=\"er-input\" id=\"display_name\" name=\"display_name\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

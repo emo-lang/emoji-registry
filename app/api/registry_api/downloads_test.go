@@ -22,7 +22,7 @@ func TestDownloadStats(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		resp := do(t, r, http.MethodGet, "/downloads/alice--tools--1.0.0.emoji", nil, nil)
+		resp := do(t, r, http.MethodGet, "/downloads/alice-tools-1.0.0.emoji", nil, nil)
 		if resp.Code != http.StatusOK {
 			t.Fatalf("download %d: expected 200, got %d", i, resp.Code)
 		}

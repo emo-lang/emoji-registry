@@ -83,7 +83,7 @@ func Signup(err string, username string, email string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" required maxlength=\"64\" pattern=\"[a-z0-9_\\-]+\"></div><div class=\"er-field\"><label for=\"email\">Email</label> <input class=\"er-input\" id=\"email\" type=\"email\" name=\"email\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" required maxlength=\"64\" pattern=\"[a-z0-9]+\"></div><div class=\"er-field\"><label for=\"email\">Email</label> <input class=\"er-input\" id=\"email\" type=\"email\" name=\"email\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
