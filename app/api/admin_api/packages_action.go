@@ -1,6 +1,8 @@
 package admin_api
 
 import (
+	"net/http"
+
 	"github.com/daqing/airway/lib/render"
 	"github.com/daqing/airway/lib/repo"
 	"github.com/daqing/airway/lib/sql"
@@ -14,6 +16,10 @@ import (
 // ones included, newest first (id as the tie-breaker for identical
 // timestamps).
 func PackagesAction(c *gin.Context) {
+	renderPackages(c, "", http.StatusOK)
+}
+
+func renderPackages(c *gin.Context, errMsg string, status int) {
 	username, adminFlag := adminViewer(c)
 
 	pkgs, err := repo.Find[models.Package](repo.CurrentDB(),
@@ -29,5 +35,5 @@ func PackagesAction(c *gin.Context) {
 		return
 	}
 
-	render.HTML(c, admin.Packages(username, adminFlag, pkgs, counts))
+	render.HTMLStatus(c, status, admin.Packages(username, adminFlag, pkgs, counts, errMsg))
 }

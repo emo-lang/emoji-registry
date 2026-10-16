@@ -66,6 +66,7 @@ func TestRoutesRegistersCoreEndpoints(t *testing.T) {
 		"GET /admin/login",
 		"POST /admin/login",
 		"POST /admin/logout",
+		"POST /admin/packages/:owner/:name/purge",
 		"GET /admin/reserved",
 		"POST /admin/reserved",
 		"POST /admin/reserved/:id/delete",

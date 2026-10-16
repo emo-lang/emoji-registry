@@ -18,9 +18,11 @@ Emo 编译器所依赖的通信协议定义在
   用户名与组织名共用一个命名空间
 - 短名保留名单存在 `reserved_names` 表(启动时从 stdlib 名单播种),另有硬编码兜底;
   管理员在 `/admin/reserved` 维护 DB 名单
-- 管理后台 `/admin`:列出全部已发布的包(含私有包),按创建时间倒序,另可管理
-  保留名单。可用 `.env` 里的 `ADMIN_USERNAME`/`ADMIN_PASSWORD` 在 `/admin/login`
-  登录,或用 `go run . admin:grant <username>` 提升站点账号
+- 管理后台 `/admin`:列出全部已发布的包(含私有包),按创建时间倒序;支持强制删除
+  (purge)——输入 `I want to purge this package <owner>/<name>` 确认后,从数据库与
+  存储中整体移除该包;另可管理保留名单。可用 `.env` 里的
+  `ADMIN_USERNAME`/`ADMIN_PASSWORD` 在 `/admin/login` 登录,或用
+  `go run . admin:grant <username>` 提升站点账号
 - 发布:上传 `.emoji` 归档(gzip tar),服务端校验 manifest、计算与编译器一致的
   SHA-256 内容 digest、版本不可变、保留 stdlib 名字
 - Yank:软删除——被 yank 的版本从解析索引中移除,但归档仍可下载,不破坏
@@ -240,7 +242,10 @@ docker run -d --name emo-registry -p 1905:1905 \
 ### 2. 登录管理后台
 
 管理后台 `/admin` 列出全部已发布的包——私有包也在内——按创建时间倒序,
-并在 `/admin/reserved` 管理保留的顶级短名(`net`、`http` 等)。有两种登录方式:
+并在 `/admin/reserved` 管理保留的顶级短名(`net`、`http` 等)。每行提供
+"Force delete"操作:精确输入 `I want to purge this package <owner>/<name>`
+确认后,该包的全部版本、下载统计与存储文件将被彻底删除,不可恢复。
+有两种登录方式:
 
 - 在环境(`.env`)里设置 `ADMIN_USERNAME`/`ADMIN_PASSWORD`,然后在
   `/admin/login` 登录。

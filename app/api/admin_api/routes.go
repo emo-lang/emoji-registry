@@ -20,6 +20,7 @@ func Routes(r *gin.Engine) {
 	{
 		group.GET("", PackagesAction)
 		group.POST("/logout", AdminLogoutAction)
+		group.POST("/packages/:owner/:name/purge", PurgeAction)
 		group.GET("/reserved", ReservedAction)
 		group.POST("/reserved", AddReservedAction)
 		group.POST("/reserved/:id/delete", DeleteReservedAction)

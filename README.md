@@ -24,7 +24,9 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   stdlib list at boot) plus a hardcoded fallback; admins manage the DB list at
   `/admin/reserved`
 - Admin console at `/admin`: every published package (private ones included)
-  listed newest first, plus reserved-name management. Sign in either with the
+  listed newest first, plus reserved-name management and a force-delete
+  (purge) behind a typed confirmation that removes a package from the
+  database and storage entirely. Sign in either with the
   `ADMIN_USERNAME`/`ADMIN_PASSWORD` credentials at `/admin/login`, or promote a
   site account with `go run . admin:grant <username>`
 - Publishing: upload a `.emoji` archive (gzip tar), server-side manifest
@@ -260,7 +262,10 @@ rate-limit budgets and download counters.
 
 The admin console at `/admin` lists every published package — private ones
 included — newest first, and manages the reserved top-level names (`net`,
-`http`, …) at `/admin/reserved`. There are two ways in:
+`http`, …) at `/admin/reserved`. Each row offers a force delete: typing
+`I want to purge this package <owner>/<name>` exactly removes the package —
+every version, its download counts and all stored files; there is no undo.
+There are two ways in:
 
 - Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in the environment (`.env`), then
   sign in at `/admin/login`.

@@ -11,7 +11,7 @@ Emo 编译器实现在同级仓库(`../emo`)。客户端包机制(manifest、解
 
 | Emo 的特点 | 对 registry 的影响 |
 |---|---|
-| `package.emo` manifest 严格固定 schema(`name`、`version`、`targets`、可选的 `link`、`deps`);旧编译器对未知字段报 E5100 | 描述、license、作者、README 等元数据**只存服务端**,经 API 返回——绝不写进 manifest |
+| `package.emo` manifest 严格固定 schema(`name`、`version`、`targets`、可选的 `link` 与 `registry`、`deps`);旧编译器对未知字段报 E5100 | 描述、license、作者、README 等元数据**只存服务端**,经 API 返回——绝不写进 manifest |
 | 版本只有精确 semver(`major.minor.patch`,纯数字),无版本范围;MVS(最小版本选择)解析在客户端完成 | 服务端只需提供版本列表和每版本依赖数据,不需要服务端依赖求解器 |
 | 包 = `.emo` 源码集合——c target 绑定包还可携带 `.c`/`.h` 原生源码(T38.2)——必须含 `package.emo` | 发布校验简单:manifest 能解析、`name`/`version` 匹配、全是源码文件即可 |
 | checksum 写入 `package.lock` 并用于客户端内容寻址缓存(`name-version-checksum` 目录) | 服务端必须复现完全一致的 digest 算法,以校验发布并让 lockfile 可验证 |
@@ -301,6 +301,10 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
   管理员身份两种:`admin:grant <username>` 提升的站点账号,或在 `/admin/login`
   用 `ADMIN_USERNAME`/`ADMIN_PASSWORD` 登录——签发的 cookie 以从凭据派生的密钥做
   HMAC 签名,任一凭据改动即令全部既有会话失效。
+- 强制删除(purge):精确输入 "I want to purge this package <owner>/<name>"
+  (服务端复核)后,删除该包的下载统计、全部版本、包记录与所有存储对象——文件名
+  从权威归档本身枚举(存储层无列举能力)。此操作不可恢复,也是唯一会删除已发布
+  内容的路径(yank 仍保留归档可下载)。
 - 上传大小限制(纯源码包 10MB 足够);归档内白名单只允许 `.emo`/`.c`/`.h` 源文件
   (外加根部 `README.md`)。
 - 限流:发布按 token 用户(30 次/小时),signup/login 与搜索按 IP(10 次/分钟、

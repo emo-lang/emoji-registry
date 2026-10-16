@@ -10,9 +10,10 @@ import (
 )
 
 // Packages renders the admin package list: every published package, private
-// ones included, newest first. versionCounts maps package IDs to their
-// version totals. username/adminFlag drive the shared top navigation.
-templ Packages(username string, adminFlag bool, rows []*models.Package, versionCounts map[airwaysql.IdType]int) {
+// ones included, newest first, with the force-delete (purge) action behind a
+// typed-confirmation dialog. versionCounts maps package IDs to their version
+// totals. username/adminFlag drive the shared top navigation.
+templ Packages(username string, adminFlag bool, rows []*models.Package, versionCounts map[airwaysql.IdType]int, err string) {
 	@layouts.Base("Admin — Packages", username, adminFlag) {
 		<main class="er-page">
 			@SubNav("packages", username == "")
@@ -29,14 +30,37 @@ templ Packages(username string, adminFlag bool, rows []*models.Package, versionC
 				.pkg-table a:hover { color: var(--er-accent); }
 				.pkg-table .desc { margin: 2px 0 0; font-size: 13px; color: var(--er-muted); }
 				.pkg-table .num { font-variant-numeric: tabular-nums; }
+				.pkg-table .actions { text-align: right; white-space: nowrap; }
 				.chip {
 					display: inline-block; padding: 1px 9px; border-radius: 999px;
 					border: 1px solid var(--er-line); font-size: 12px; color: var(--er-muted);
 				}
 				.chip.private { color: #b3453a; border-color: #c66; }
+				.er-btn.danger { color: #b3453a; border-color: #c66; }
+				.er-btn.danger:hover { border-color: #b3453a; }
+				/* Mismatched or empty phrase: visibly inert, not just inert. */
+				#purge-submit:disabled {
+					cursor: not-allowed;
+					color: var(--er-muted);
+					border-color: var(--er-line);
+					opacity: .6;
+				}
+				#purge-dialog {
+					border: 1px solid var(--er-line); border-radius: 10px;
+					background: var(--er-bg); color: var(--er-ink);
+					padding: 22px 24px; width: min(520px, calc(100% - 48px));
+				}
+				#purge-dialog::backdrop { background: rgba(0, 0, 0, .5); }
+				#purge-dialog h2 { margin: 0 0 10px; }
+				#purge-dialog .dialog-actions {
+					display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;
+				}
 			</style>
 			<h1>Packages</h1>
 			<p class="er-muted">{ strconv.Itoa(len(rows)) } published, newest first.</p>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
 			if len(rows) == 0 {
 				<p class="er-muted">Nothing has been published yet.</p>
 			}
@@ -48,6 +72,7 @@ templ Packages(username string, adminFlag bool, rows []*models.Package, versionC
 						<th>Downloads</th>
 						<th>Versions</th>
 						<th>Created</th>
+						<th class="actions">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -69,10 +94,73 @@ templ Packages(username string, adminFlag bool, rows []*models.Package, versionC
 							<td class="num">{ strconv.FormatInt(pkg.Downloads, 10) }</td>
 							<td class="num">{ strconv.Itoa(versionCounts[pkg.ID]) }</td>
 							<td class="num">{ pkg.CreatedAt.Format("2006-01-02 15:04") }</td>
+							<td class="actions">
+								<button
+									type="button"
+									class="er-btn danger purge-btn"
+									data-pkg={ pkg.FullName() }
+								>
+									Force delete
+								</button>
+							</td>
 						</tr>
 					}
 				</tbody>
 			</table>
+			<dialog id="purge-dialog">
+				<form id="purge-form" method="post">
+					<h2>Force delete</h2>
+					<p>
+						This permanently deletes <strong id="purge-name"></strong> — every version,
+						its download counts and all stored files. There is no undo.
+					</p>
+					<div class="er-field">
+						<label for="purge-confirm">Type <code id="purge-phrase"></code> to confirm:</label>
+						<input class="er-input" id="purge-confirm" name="confirm" autocomplete="off" spellcheck="false"/>
+					</div>
+					<div class="dialog-actions">
+						<button type="button" class="er-btn" id="purge-cancel">Cancel</button>
+						<button type="submit" class="er-btn danger" id="purge-submit" disabled>Force delete</button>
+					</div>
+				</form>
+			</dialog>
+			<script>
+				(function () {
+					var dialog = document.getElementById("purge-dialog");
+					if (!dialog) return;
+					var form = document.getElementById("purge-form");
+					var input = document.getElementById("purge-confirm");
+					var submit = document.getElementById("purge-submit");
+					var required = "";
+
+					function check() {
+						submit.disabled = input.value !== required;
+					}
+
+					document.querySelectorAll(".purge-btn").forEach(function (btn) {
+						btn.addEventListener("click", function () {
+							var full = btn.dataset.pkg;
+							required = "I want to purge this package " + full;
+							document.getElementById("purge-name").textContent = full;
+							document.getElementById("purge-phrase").textContent = required;
+							form.action = "/admin/packages/" + full + "/purge";
+							input.value = "";
+							check();
+							dialog.showModal();
+							input.focus();
+						});
+					});
+
+					input.addEventListener("input", check);
+					document.getElementById("purge-cancel").addEventListener("click", function () {
+						dialog.close();
+					});
+					dialog.addEventListener("close", function () {
+						input.value = "";
+						submit.disabled = true;
+					});
+				})();
+			</script>
 		</main>
 	}
 }
