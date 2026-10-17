@@ -33,7 +33,7 @@ func Sidebar() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<aside class=\"er-sidebar\"><div class=\"tip-card\"><h2>Tips</h2><ul class=\"tip-list\"><li>Your username is a package scope — publish <code>yourname/pkg</code> right away; create an organization only to share a scope with a team.</li><li>Create an API token on the <a href=\"/tokens\" style=\"color: green;\">Tokens</a> page to run <code>emo publish</code>.</li><li>Mark a package private to hide it from everyone outside your team.</li><li>Versions are immutable once published — yank a version instead of overwriting it.</li></ul></div></aside>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<aside class=\"er-sidebar\"><div class=\"tip-card\"><h2>Tips</h2><ul class=\"tip-list\"><li>Your username is a package scope — publish <code>yourname/pkg</code> right away; create an organization only to share a scope with a team.</li><li>Create an API token on the <a href=\"/tokens\" style=\"color: green;\">Tokens</a> page to run <code>emo emoji publish</code>.</li><li>Mark a package private to hide it from everyone outside your team.</li><li>Versions are immutable once published — yank a version instead of overwriting it.</li></ul></div></aside>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
