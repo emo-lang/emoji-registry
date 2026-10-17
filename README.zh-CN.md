@@ -20,7 +20,9 @@ Emo 编译器所依赖的通信协议定义在
   管理员在 `/admin/reserved` 维护 DB 名单
 - 管理后台 `/admin`:列出全部已发布的包(含私有包),按创建时间倒序;支持强制删除
   (purge)——输入 `I want to purge this package <owner>/<name>` 确认后,从数据库与
-  存储中整体移除该包;另可管理保留名单。可用 `.env` 里的
+  存储中整体移除该包;另可管理保留名单;还可在 `/admin/accounts` 锁定账号或组织
+  ——锁定后其包照常展示,但该 scope 下的下载、解析与写入一律返回
+  `403 owner_locked`,解锁即恢复。可用 `.env` 里的
   `ADMIN_USERNAME`/`ADMIN_PASSWORD` 在 `/admin/login` 登录,或用
   `go run . admin:grant <username>` 提升站点账号
 - 发布:上传 `.emoji` 归档(gzip tar),服务端校验 manifest、计算与编译器一致的
@@ -245,6 +247,10 @@ docker run -d --name emo-registry -p 1905:1905 \
 并在 `/admin/reserved` 管理保留的顶级短名(`net`、`http` 等)。每行提供
 "Force delete"操作:精确输入 `I want to purge this package <owner>/<name>`
 确认后,该包的全部版本、下载统计与存储文件将被彻底删除,不可恢复。
+`/admin/accounts` 列出全部用户账号与组织,并提供锁定开关:锁定后该 scope
+的包在站点上照常展示,但版本列表、依赖查询、归档下载与该 scope 下的所有
+写入在解锁前一律返回 `403 owner_locked`(message
+`该账号(组织）已被锁定`);个人主页与组织页会显示「已锁定」徽标。
 有两种登录方式:
 
 - 在环境(`.env`)里设置 `ADMIN_USERNAME`/`ADMIN_PASSWORD`,然后在

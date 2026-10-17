@@ -14,6 +14,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/lock"
 )
 
 // VersionsAction serves GET /:owner/:name/versions: a JSON array of version
@@ -34,6 +35,9 @@ func VersionsAction(c *gin.Context) {
 	}
 	if pkg == nil || !middlewares.CanReadPackage(c, pkg) {
 		respondNotFound(c)
+		return
+	}
+	if rejectLockedScope(c, owner) {
 		return
 	}
 
@@ -87,6 +91,9 @@ func FileAction(c *gin.Context) {
 		respondNotFound(c)
 		return
 	}
+	if rejectLockedScope(c, owner) {
+		return
+	}
 
 	row, err := repo.FindOneBy[models.Version](sql.H{"package_id": pkg.ID, "version": version})
 	if err != nil || row == nil || row.Yanked() {
@@ -110,4 +117,16 @@ func FileAction(c *gin.Context) {
 
 func respondNotFound(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"code": "not_found", "message": "not found"}})
+}
+
+// rejectLockedScope answers 403 owner_locked when the scope belongs to a
+// locked account or organization. Following this package's convention, a
+// lookup failure falls through as not-locked.
+func rejectLockedScope(c *gin.Context, scope string) bool {
+	locked, err := lock.ScopeLocked(scope)
+	if err == nil && locked {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"code": lock.Code, "message": lock.Message}})
+		return true
+	}
+	return false
 }

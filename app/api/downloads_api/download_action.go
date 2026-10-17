@@ -16,12 +16,14 @@ import (
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/lock"
 	"github.com/emo-lang/emoji-registry/app/services/stats"
 )
 
 // DownloadAction serves GET /downloads/<owner>-<name>-<version>.emoji.
 // Yanked versions stay downloadable (lockfile pins must keep working) and are
-// flagged with X-Emo-Yanked.
+// flagged with X-Emo-Yanked. A locked owner scope is not downloadable at all:
+// the packages stay listed, but every archive answers 403 owner_locked.
 func DownloadAction(c *gin.Context) {
 	owner, name, version, ok := parseFileName(c.Param("file"))
 	if !ok {
@@ -36,6 +38,16 @@ func DownloadAction(c *gin.Context) {
 	}
 	if !middlewares.CanReadPackage(c, pkg) {
 		respondError(c, http.StatusNotFound, "package_not_found", owner+"/"+name+" is not published")
+		return
+	}
+
+	locked, err := lock.ScopeLocked(owner)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+	if locked {
+		respondError(c, http.StatusForbidden, lock.Code, lock.Message)
 		return
 	}
 

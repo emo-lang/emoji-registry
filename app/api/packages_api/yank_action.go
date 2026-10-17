@@ -11,6 +11,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/lock"
 	"github.com/emo-lang/emoji-registry/app/services/orgs"
 	"github.com/emo-lang/emoji-registry/app/views/errors"
 )
@@ -38,6 +39,13 @@ func YankVersionAction(c *gin.Context) {
 	if pkg == nil || !orgs.CanPublishAs(user, pkg.OwnerScope) {
 		render.HTMLStatus(c, http.StatusNotFound,
 			errors.NotFound(user.Username, "Package "+c.Param("owner")+"/"+c.Param("name")+" does not exist."))
+		return
+	}
+
+	// A locked scope cannot mutate its packages; redirect back unchanged,
+	// the same silent no-op as a mismatched confirmation phrase.
+	if locked, _ := lock.ScopeLocked(pkg.OwnerScope); locked {
+		c.Redirect(http.StatusFound, "/p/"+pkg.FullName())
 		return
 	}
 

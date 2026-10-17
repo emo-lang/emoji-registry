@@ -28,6 +28,10 @@ func YankAction(c *gin.Context) {
 		return
 	}
 
+	if rejectLockedScope(c, pkg.OwnerScope) {
+		return
+	}
+
 	version, err := repo.FindOneBy[models.Version](sql.H{
 		"package_id": pkg.ID,
 		"version":    c.Param("version"),

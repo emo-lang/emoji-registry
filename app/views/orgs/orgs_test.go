@@ -36,3 +36,16 @@ func TestOrgPagesHideTipsSidebar(t *testing.T) {
 		}
 	}
 }
+
+// The organization page carries the locked badge only while locked.
+func TestShowLockedBadge(t *testing.T) {
+	body := renderComponent(t, Show("alice", false, &models.Organization{Name: "acme", Locked: true}, nil, nil, false, ""))
+	if !strings.Contains(body, "已锁定") {
+		t.Fatalf("expected the locked badge, got %q", body)
+	}
+
+	body = renderComponent(t, Show("alice", false, &models.Organization{Name: "acme"}, nil, nil, false, ""))
+	if strings.Contains(body, "已锁定") {
+		t.Fatalf("unlocked organization must not carry the badge, got %q", body)
+	}
+}

@@ -24,9 +24,12 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   stdlib list at boot) plus a hardcoded fallback; admins manage the DB list at
   `/admin/reserved`
 - Admin console at `/admin`: every published package (private ones included)
-  listed newest first, plus reserved-name management and a force-delete
-  (purge) behind a typed confirmation that removes a package from the
-  database and storage entirely. Sign in either with the
+  listed newest first, reserved-name management, a force-delete (purge)
+  behind a typed confirmation that removes a package from the database and
+  storage entirely, and account locking at `/admin/accounts` — a locked
+  account or organization keeps its packages listed, but nothing under its
+  scope can be downloaded, resolved or modified (`403 owner_locked`) until
+  unlocked. Sign in either with the
   `ADMIN_USERNAME`/`ADMIN_PASSWORD` credentials at `/admin/login`, or promote a
   site account with `go run . admin:grant <username>`
 - Publishing: upload a `.emoji` archive (gzip tar), server-side manifest
@@ -265,6 +268,11 @@ included — newest first, and manages the reserved top-level names (`net`,
 `http`, …) at `/admin/reserved`. Each row offers a force delete: typing
 `I want to purge this package <owner>/<name>` exactly removes the package —
 every version, its download counts and all stored files; there is no undo.
+`/admin/accounts` lists every user account and organization with a lock
+toggle: a locked scope keeps its packages listed on the site, but version
+lists, dependency queries, archive downloads and every write under the scope
+answer `403 owner_locked` (message `该账号(组织）已被锁定`) until it is
+unlocked; the profile and org pages show a 已锁定 badge.
 There are two ways in:
 
 - Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in the environment (`.env`), then

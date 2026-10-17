@@ -22,6 +22,7 @@ templ SubNav(active string, envAdmin bool) {
 	</style>
 	<nav class="admin-nav">
 		<a href="/admin" class={ templ.KV("active", active == "packages") }>Packages</a>
+		<a href="/admin/accounts" class={ templ.KV("active", active == "accounts") }>Accounts</a>
 		<a href="/admin/reserved" class={ templ.KV("active", active == "reserved") }>Reserved names</a>
 		if envAdmin {
 			<form method="post" action="/admin/logout">

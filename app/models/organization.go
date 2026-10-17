@@ -11,6 +11,7 @@ type Organization struct {
 	Name        string           `db:"name" json:"name"`
 	DisplayName string           `db:"display_name" json:"display_name"`
 	UserID      airwaysql.IdType `db:"user_id" json:"user_id"`
+	Locked      bool             `db:"locked" json:"locked"`
 	CreatedAt   time.Time        `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time        `db:"updated_at" json:"updated_at"`
 }

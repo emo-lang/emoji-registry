@@ -51,6 +51,9 @@ func PublishAction(c *gin.Context) {
 		respondError(c, http.StatusForbidden, "forbidden", "you cannot publish under the scope "+owner)
 		return
 	}
+	if rejectLockedScope(c, owner) {
+		return
+	}
 
 	pkg, err := findPackage(owner, name)
 	if err != nil {

@@ -156,6 +156,35 @@ func TestProfileUnknownUserIs404(t *testing.T) {
 	}
 }
 
+func TestProfileShowsLockedBadgeAndPackages(t *testing.T) {
+	r := setupTest(t)
+
+	publishAs(t, r, "alice")
+
+	user, err := repo.FindOneBy[models.User](sql.H{"username": "alice"})
+	if err != nil || user == nil {
+		t.Fatalf("find user: %v", err)
+	}
+	if err := repo.UpdateByID[models.User](user.ID, sql.H{"locked": true}); err != nil {
+		t.Fatalf("lock user: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/u/alice", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	body := w.Body.String()
+	if !strings.Contains(body, "已锁定") {
+		t.Fatalf("expected the locked badge, got %q", body)
+	}
+	// Locking hides nothing: the packages stay listed on the profile.
+	if !strings.Contains(body, "alice/tools") {
+		t.Fatalf("locked account's packages must stay listed, got %q", body)
+	}
+}
+
 func TestProfileHidesPrivatePackages(t *testing.T) {
 	r := setupTest(t)
 
