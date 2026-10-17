@@ -13,8 +13,25 @@ import (
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
 	"github.com/emo-lang/emoji-registry/app/services/emoji"
+	"github.com/emo-lang/emoji-registry/app/services/lock"
 	"github.com/emo-lang/emoji-registry/app/services/stats"
 )
+
+// rejectLockedScope answers 403 owner_locked when the scope belongs to a
+// locked account or organization. The boolean reports whether the request
+// was answered.
+func rejectLockedScope(c *gin.Context, scope string) bool {
+	locked, err := lock.ScopeLocked(scope)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return true
+	}
+	if locked {
+		respondError(c, http.StatusForbidden, lock.Code, lock.Message)
+		return true
+	}
+	return false
+}
 
 // respondError emits the shared error shape from docs/design.md section 5.
 func respondError(c *gin.Context, status int, code, message string) {

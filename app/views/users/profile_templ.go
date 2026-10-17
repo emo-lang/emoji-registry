@@ -60,38 +60,48 @@ func Profile(viewerName string, admin bool, profileUser *models.User, pkgs []*mo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<style>\n\t\t\t\t.profile-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }\n\t\t\t\t.profile-head h1 { margin: 0; }\n\t\t\t\t.profile-head .handle { color: var(--er-muted); font-size: 14px; }\n\t\t\t\t.profile-section { margin-top: 28px; }\n\t\t\t\t.profile-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }\n\t\t\t</style><header class=\"profile-head\"><h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<style>\n\t\t\t\t.profile-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }\n\t\t\t\t.profile-head h1 { margin: 0; }\n\t\t\t\t.profile-head .handle { color: var(--er-muted); font-size: 14px; }\n\t\t\t\t.profile-section { margin-top: 28px; }\n\t\t\t\t.profile-section h2 { font-size: 13px; font-weight: 650; letter-spacing: 1.4px; text-transform: uppercase; color: var(--er-accent); }\n\t\t\t\t.status-chip {\n\t\t\t\t\tdisplay: inline-block; padding: 1px 9px; border-radius: 999px;\n\t\t\t\t\tborder: 1px solid #c66; font-size: 12px; color: #b3453a;\n\t\t\t\t}\n\t\t\t</style><header class=\"profile-head\"><h1>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(profileUser.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users/profile.templ`, Line: 26, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users/profile.templ`, Line: 30, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h1><span class=\"handle\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h1>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if profileUser.Locked {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"status-chip\">已锁定</span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"handle\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(pkgCount(len(pkgs)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users/profile.templ`, Line: 27, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users/profile.templ`, Line: 34, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</span></header><section class=\"profile-section\"><h2>Packages</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</span></header><section class=\"profile-section\"><h2>Packages</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(pkgs) == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"er-muted\">This account hasn't published any packages yet.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p class=\"er-muted\">This account hasn't published any packages yet.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -102,7 +112,7 @@ func Profile(viewerName string, admin bool, profileUser *models.User, pkgs []*mo
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</section></main>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</section></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

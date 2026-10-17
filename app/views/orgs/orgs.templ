@@ -91,8 +91,19 @@ templ Show(username string, admin bool, org *models.Organization, members []orgs
 				.member-row button { font-size: 13px; padding: 3px 10px; }
 				.add-member { display: flex; gap: 10px; align-items: end; margin-top: 12px; }
 				.add-member .er-field { margin-bottom: 0; flex: 1; }
+				.org-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+				.org-head h1 { margin: 0; }
+				.status-chip {
+					display: inline-block; padding: 1px 9px; border-radius: 999px;
+					border: 1px solid #c66; font-size: 12px; color: #b3453a;
+				}
 			</style>
-			<h1>{ org.Name }</h1>
+			<header class="org-head">
+				<h1>{ org.Name }</h1>
+				if org.Locked {
+					<span class="status-chip">已锁定</span>
+				}
+			</header>
 			if org.DisplayName != "" {
 				<p class="er-muted">{ org.DisplayName }</p>
 			}

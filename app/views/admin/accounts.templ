@@ -1,0 +1,83 @@
+package admin
+
+import (
+	"strconv"
+
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// Accounts renders the admin account list: every user account and
+// organization, newest first, with the lock toggle — a locked owner keeps
+// its packages listed but nothing under its scope can be downloaded,
+// resolved or modified. username/adminFlag drive the shared top navigation.
+templ Accounts(username string, adminFlag bool, rows []AccountRow) {
+	@layouts.Base("Admin — Accounts", username, adminFlag) {
+		<main class="er-page">
+			@SubNav("accounts", username == "")
+			<style>
+				.acct-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+				.acct-table th {
+					text-align: left; font-size: 12px; font-weight: 650;
+					text-transform: uppercase; letter-spacing: .8px;
+					color: var(--er-muted); padding: 8px 10px;
+					border-bottom: 1px solid var(--er-line);
+				}
+				.acct-table td { padding: 10px; border-bottom: 1px solid var(--er-line); vertical-align: top; }
+				.acct-table a { color: var(--er-ink); font-weight: 650; text-decoration: none; }
+				.acct-table a:hover { color: var(--er-accent); }
+				.acct-table .num { font-variant-numeric: tabular-nums; }
+				.acct-table .actions { text-align: right; white-space: nowrap; }
+				.chip {
+					display: inline-block; padding: 1px 9px; border-radius: 999px;
+					border: 1px solid var(--er-line); font-size: 12px; color: var(--er-muted);
+				}
+				.chip.locked { color: #b3453a; border-color: #c66; }
+				.er-btn.danger { color: #b3453a; border-color: #c66; }
+				.er-btn.danger:hover { border-color: #b3453a; }
+			</style>
+			<h1>Accounts</h1>
+			<p class="er-muted">{ strconv.Itoa(len(rows)) } user accounts and organizations, newest first.</p>
+			if len(rows) == 0 {
+				<p class="er-muted">No accounts exist yet.</p>
+			}
+			<table class="acct-table">
+				<thead>
+					<tr>
+						<th>Account</th>
+						<th>Type</th>
+						<th>Packages</th>
+						<th>Created</th>
+						<th>Status</th>
+						<th class="actions">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, row := range rows {
+						<tr>
+							<td><a href={ templ.SafeURL(row.URL) }>{ row.Name }</a></td>
+							<td>{ row.Kind }</td>
+							<td class="num">{ strconv.Itoa(row.Packages) }</td>
+							<td class="num">{ row.CreatedAt.Format("2006-01-02 15:04") }</td>
+							<td>
+								if row.Locked {
+									<span class="chip locked">已锁定</span>
+								} else {
+									<span class="chip">active</span>
+								}
+							</td>
+							<td class="actions">
+								<form method="post" action={ templ.SafeURL(row.Path) }>
+									if row.Locked {
+										<button type="submit" class="er-btn">Unlock</button>
+									} else {
+										<button type="submit" class="er-btn danger">Lock</button>
+									}
+								</form>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</main>
+	}
+}

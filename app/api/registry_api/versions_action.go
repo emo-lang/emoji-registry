@@ -7,9 +7,15 @@ import (
 )
 
 // ListVersionsAction handles GET /api/v1/packages/:owner/:name/versions (B.1).
+// A locked owner scope answers 403 owner_locked: resolution must stop with
+// that error instead of quietly seeing an empty version list.
 func ListVersionsAction(c *gin.Context) {
 	pkg, ok := loadReadablePackage(c)
 	if !ok {
+		return
+	}
+
+	if rejectLockedScope(c, pkg.OwnerScope) {
 		return
 	}
 

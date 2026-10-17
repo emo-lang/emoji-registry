@@ -1,12 +1,14 @@
-FROM m.daocloud.io/docker.io/library/golang:1.27-alpine AS builder
+FROM reg.mindwork.cool/golang:1.27-alpine AS builder
 WORKDIR /app
 COPY . /app
 RUN go build -o ./bin/app .
 
-FROM m.daocloud.io/docker.io/library/alpine
+FROM reg.mindwork.cool/alpine
 WORKDIR /app
 COPY --from=builder /app/bin/app /app
 COPY --from=builder /app/db /app/db
+COPY --from=builder /app/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh && mkdir -p /app/data
 
 ENV AIRWAY_ENV=production
 ENV LISTEN=:1905
@@ -14,4 +16,5 @@ ENV TZ="Asia/Shanghai"
 
 EXPOSE 1905
 
-CMD ["/app/app"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["server"]

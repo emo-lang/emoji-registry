@@ -175,7 +175,7 @@ func runServer() {
 		// The reserved_names table is seeded from the hardcoded stdlib list;
 		// seeding is idempotent, so it runs on every boot.
 		if err := emoji.SeedReservedNames(); err != nil {
-			log.Printf("reserved names seed failed: %v", err)
+			log.Printf("reserved names seed failed: %v (run `db:migrate` first if the database has not been migrated)", err)
 			os.Exit(3)
 		}
 	}

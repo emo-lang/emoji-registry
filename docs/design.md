@@ -131,7 +131,8 @@ Errors share one shape:
 
 `code` is a stable machine-readable enum (`package_not_found`, `version_not_found`,
 `version_exists`, `invalid_manifest`, `checksum_mismatch`, `unauthorized`,
-`token_expired`, `forbidden`, `name_reserved`); `message` is for humans only.
+`token_expired`, `forbidden`, `name_reserved`, `owner_locked`); `message` is for
+humans only.
 
 ### Private packages
 
@@ -148,6 +149,20 @@ scope via `PATCH /api/v1/packages/:owner/:name` or the package page. Every read 
   unreadable packages, same as unknown ones.
 - Clients authenticate with `Authorization: Bearer <token>`; the Emo toolchain reads
   the token from the `EMO_TOKEN` environment variable (new convention, additive only).
+
+### Locked accounts and organizations
+
+An admin can lock a user account or an organization (at `/admin/accounts`). A locked
+scope's packages stay listed everywhere — search, profiles, org pages, the package
+page and B.4 metadata keep working — but their content is frozen:
+
+- The version list (B.1), dependency queries (B.2), archive downloads (B.3) and
+  Protocol A answer `403 owner_locked` (message `该账号(组织）已被锁定`) for every
+  package under the scope, so `emo deps resolve` stops with that error instead of
+  quietly resolving nothing.
+- Publishing, yanking and metadata edits under the scope are refused the same way.
+- The admin account list, the profile and the org page show the 已锁定 status;
+  unlocking takes effect immediately and restores everything.
 
 ### Protocol A — bare-file compatibility layer
 
@@ -304,8 +319,8 @@ This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
 
 ## 6. Server data model
 
-- `users` (username, email, password_digest)
-- `organizations` (name, display_name, user_id) + `memberships` (organization_id,
+- `users` (username, email, password_digest, locked)
+- `organizations` (name, display_name, user_id, locked) + `memberships` (organization_id,
   user_id, role) — usernames and organization names share one namespace: both act as
   package scopes, so registration rejects collisions across the two tables. Any
   member (owner or member role) may publish, yank and edit metadata under the
@@ -338,6 +353,9 @@ This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
   are enumerated from the canonical archive itself, since the storage layer
   has no listing. There is no undo; this is the only path that deletes
   published content (yank keeps archives downloadable).
+- Account lock: admins freeze an account or organization from `/admin/accounts`.
+  Its packages stay listed, but every resolution read, download and write under
+  the scope answers `403 owner_locked` until it is unlocked.
 - Upload size limit (10 MB is generous for source-only packages); only `.emo`/`.c`/`.h`
   sources (plus a root README.md) are whitelisted inside archives.
 - Rate limiting: per-token-user on publish (30/hour), per-IP on signup/login

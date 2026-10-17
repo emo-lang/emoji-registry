@@ -35,6 +35,11 @@ func DependenciesAction(c *gin.Context) {
 			// Unknown and unreadable packages are both simply absent.
 			continue
 		}
+		if rejectLockedScope(c, pkg.OwnerScope) {
+			// One locked package refuses the whole batch: resolution has to
+			// surface the lock, not skip past it.
+			return
+		}
 
 		versions, err := packageVersions(pkg)
 		if err != nil {

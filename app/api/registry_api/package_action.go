@@ -45,6 +45,10 @@ func UpdatePackageAction(c *gin.Context) {
 		return
 	}
 
+	if rejectLockedScope(c, pkg.OwnerScope) {
+		return
+	}
+
 	var input struct {
 		Description *string `json:"description"`
 		License     *string `json:"license"`

@@ -112,7 +112,7 @@ Base URL 即 `EMO_REGISTRY` 指向的地址。公开只读端点无需 token。�
 
 `code` 是稳定的机器可读枚举(`package_not_found`、`version_not_found`、
 `version_exists`、`invalid_manifest`、`checksum_mismatch`、`unauthorized`、
-`token_expired`、`forbidden`、`name_reserved`);`message` 只给人看。
+`token_expired`、`forbidden`、`name_reserved`、`owner_locked`);`message` 只给人看。
 
 ### 私有包
 
@@ -126,6 +126,19 @@ Base URL 即 `EMO_REGISTRY` 指向的地址。公开只读端点无需 token。�
   401/403——私有包名无法被探测。`dependencies` 对不可读的包按不存在处理(缺席)。
 - 客户端用 `Authorization: Bearer <token>` 认证;Emo 工具链从 `EMO_TOKEN` 环境变量
   读取 token(新增约定,只增不改)。
+
+### 账号与组织锁定
+
+管理员可在 `/admin/accounts` 锁定某个用户账号或组织。锁定后该 scope 的包在所有
+列表里照常展示——搜索、个人主页、组织页、包详情页、B.4 元信息都继续工作——但
+内容被冻结:
+
+- 版本列表(B.1)、依赖查询(B.2)、归档下载(B.3)与协议 A 对该 scope 下的所有包
+  一律返回 `403 owner_locked`(message `该账号(组织）已被锁定`),因此
+  `emo deps resolve` 会带着这个错误停下,而不是悄悄解析出空结果。
+- 该 scope 下的发布、yank、元信息修改同样被拒绝。
+- 管理后台账号列表、个人主页与组织页会显示「已锁定」状态;解锁立即生效,
+  一切恢复。
 
 ### 协议 A——裸文件兼容层
 
@@ -277,8 +290,8 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 
 ## 6. 服务端数据模型
 
-- `users`(username, email, password_digest)
-- `organizations`(name, display_name, user_id)+ `memberships`(organization_id,
+- `users`(username, email, password_digest, locked)
+- `organizations`(name, display_name, user_id, locked)+ `memberships`(organization_id,
   user_id, role)——用户名与组织名共用一个命名空间:两者都能作为包的 scope,注册时
   跨两张表查重。组织的任何成员(owner 或 member)都能以组织 scope 发布、yank、
   改元信息;只有 owner 能管理成员。
@@ -305,6 +318,8 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
   (服务端复核)后,删除该包的下载统计、全部版本、包记录与所有存储对象——文件名
   从权威归档本身枚举(存储层无列举能力)。此操作不可恢复,也是唯一会删除已发布
   内容的路径(yank 仍保留归档可下载)。
+- 账号锁定:管理员在 `/admin/accounts` 冻结账号或组织。其包保持展示,但该 scope
+  下的所有解析读取、下载与写入在解锁前一律返回 `403 owner_locked`。
 - 上传大小限制(纯源码包 10MB 足够);归档内白名单只允许 `.emo`/`.c`/`.h` 源文件
   (外加根部 `README.md`)。
 - 限流:发布按 token 用户(30 次/小时),signup/login 与搜索按 IP(10 次/分钟、

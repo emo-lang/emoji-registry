@@ -12,6 +12,7 @@ type User struct {
 	Email          string           `db:"email" json:"email"`
 	PasswordDigest string           `db:"password_digest" json:"-"`
 	Admin          bool             `db:"admin" json:"admin"`
+	Locked         bool             `db:"locked" json:"locked"`
 	CreatedAt      time.Time        `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time        `db:"updated_at" json:"updated_at"`
 }
