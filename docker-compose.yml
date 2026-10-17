@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: registry
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-registry-test}
+      POSTGRES_DB: registry
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U registry -d registry"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  registry:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "1905:1905"
+    environment:
+      DSN: postgres://registry:${POSTGRES_PASSWORD:-registry-test}@db:5432/registry
+      STORAGE_DRIVER: local
+      STORAGE_ROOT: /app/data/storage
+    volumes:
+      - registry-data:/app/data
+
+volumes:
+  pgdata:
+  registry-data:
