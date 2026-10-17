@@ -17,7 +17,8 @@ Emo 编译器所依赖的通信协议定义在
   组织是*共享* scope——成员都能以组织 scope 发布、yank、改元信息,owner 管理成员;
   用户名与组织名共用一个命名空间
 - 短名保留名单存在 `reserved_names` 表(启动时从 stdlib 名单播种),另有硬编码兜底;
-  管理员在 `/admin/reserved` 维护 DB 名单
+  管理员在 `/admin/reserved` 维护 DB 名单。条目可以是普通名称(精确匹配),也可以是
+  正则表达式(忽略大小写匹配),例如 `^emo` 会禁止一切以 `emo` 开头的用户名、组织名与 scope
 - 管理后台 `/admin`:列出全部已发布的包(含私有包),按创建时间倒序;支持强制删除
   (purge)——输入 `I want to purge this package <owner>/<name>` 确认后,从数据库与
   存储中整体移除该包;另可管理保留名单;还可在 `/admin/accounts` 锁定账号或组织
@@ -251,7 +252,8 @@ docker run -d --name emo-registry -p 1905:1905 \
 ### 2. 登录管理后台
 
 管理后台 `/admin` 列出全部已发布的包——私有包也在内——按创建时间倒序,
-并在 `/admin/reserved` 管理保留的顶级短名(`net`、`http` 等)。每行提供
+并在 `/admin/reserved` 管理保留名称(`net`、`http` 等):普通条目精确匹配,
+带正则语法的条目(如 `^emo`)在候选名称中任意位置忽略大小写匹配。每行提供
 "Force delete"操作:精确输入 `I want to purge this package <owner>/<name>`
 确认后,该包的全部版本、下载统计与存储文件将被彻底删除,不可恢复。
 `/admin/accounts` 列出全部用户账号与组织,并提供锁定开关:锁定后该 scope

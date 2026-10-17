@@ -27,6 +27,9 @@ templ Reserved(username string, adminFlag bool, rows []*models.ReservedName, bui
 			<h1>Reserved names</h1>
 			<p class="er-muted">
 				Reserved names cannot be registered as usernames, organizations or package scopes.
+				A plain name matches exactly; an entry with regex syntax matches case-insensitively
+				anywhere in the candidate name, so <code>^emo</code> blocks every name starting
+				with <code>emo</code>.
 				The built-in stdlib list is compiled in and cannot be changed at runtime.
 			</p>
 			if err != "" {
@@ -49,8 +52,8 @@ templ Reserved(username string, adminFlag bool, rows []*models.ReservedName, bui
 				}
 				<form class="add-form" method="post" action="/admin/reserved">
 					<div class="er-field">
-						<label for="name">Name</label>
-						<input class="er-input" id="name" name="name" required maxlength="64" pattern="[a-z][a-z0-9_]*"/>
+						<label for="name">Name or pattern</label>
+						<input class="er-input" id="name" name="name" required maxlength="64" placeholder="^emo"/>
 					</div>
 					<div class="er-field">
 						<label for="reason">Reason</label>

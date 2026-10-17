@@ -18,6 +18,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/emoji"
 	_ "github.com/emo-lang/emoji-registry/db/migrate"
 )
 
@@ -138,6 +139,44 @@ func TestReservedAddIdempotentDelete(t *testing.T) {
 	}
 	if exists, _ := repo.ExistsWhere[models.ReservedName](sql.H{"name": "foobar"}); exists {
 		t.Fatalf("expected foobar to be gone")
+	}
+}
+
+func TestReservedPattern(t *testing.T) {
+	r := setupTest(t)
+	admin := makeUser(t, "alice", true)
+
+	resp := do(t, r, http.MethodPost, "/admin/reserved", url.Values{"name": {"^emo"}, "reason": {"brand"}}, admin)
+	if resp.Code != http.StatusFound {
+		t.Fatalf("add pattern: expected 302, got %d", resp.Code)
+	}
+
+	for _, name := range []string{"emo", "emotion", "emo_cli"} {
+		if !emoji.IsReserved(name) {
+			t.Fatalf("expected %q to be reserved by ^emo", name)
+		}
+	}
+	// The pattern is anchored where its author anchored it: names merely
+	// containing "emo" stay free.
+	for _, name := range []string{"remotion", "acme"} {
+		if emoji.IsReserved(name) {
+			t.Fatalf("expected %q to be free", name)
+		}
+	}
+
+	// Patterns are matched case-insensitively and may be typed in either case.
+	resp = do(t, r, http.MethodPost, "/admin/reserved", url.Values{"name": {"^ACME"}, "reason": {"brand"}}, admin)
+	if resp.Code != http.StatusFound {
+		t.Fatalf("add uppercase pattern: expected 302, got %d", resp.Code)
+	}
+	if !emoji.IsReserved("acme") {
+		t.Fatalf("expected ^ACME to reserve acme")
+	}
+
+	// A pattern that does not compile is rejected with the form re-rendered.
+	resp = do(t, r, http.MethodPost, "/admin/reserved", url.Values{"name": {"["}, "reason": {"x"}}, admin)
+	if resp.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("invalid pattern: expected 422, got %d", resp.Code)
 	}
 }
 

@@ -1,13 +1,25 @@
 package emoji
 
 import (
+	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/daqing/airway/lib/repo"
 	"github.com/daqing/airway/lib/sql"
 
 	"github.com/emo-lang/emoji-registry/app/models"
 )
+
+// MaxReservedEntryLen bounds a stored reserved entry; it matches the
+// reserved_names.name column width.
+const MaxReservedEntryLen = 64
+
+// reservedPatternChars limits regular-expression entries to the characters a
+// name can contain plus the regex operators that make sense over them. Letters
+// are accepted in either case; matching is case-insensitive. It keeps typos
+// like "BAD NAME" from being accepted as a literal pattern.
+var reservedPatternChars = regexp.MustCompile(`^[a-zA-Z0-9_^$.*+?()\[\]{}|\\-]+$`)
 
 // reservedNames are top-level short names held back for the official Emo
 // stdlib; packages under these owner scopes cannot be registered by ordinary
@@ -50,9 +62,38 @@ func BuiltinReservedNames() []string {
 	return names
 }
 
+// ValidReservedEntry reports whether entry can be stored in the managed
+// reserved list: a plain lowercase identifier (matched exactly) or a regular
+// expression using the name alphabet and regex operators, e.g. "^emo".
+func ValidReservedEntry(entry string) bool {
+	if ValidNamePart(entry) {
+		return true
+	}
+
+	if entry == "" || len(entry) > MaxReservedEntryLen || !reservedPatternChars.MatchString(entry) {
+		return false
+	}
+	// A bare name is matched exactly, so an entry that is not a valid name
+	// must actually use a regex operator to be meaningful.
+	if !strings.ContainsAny(entry, "^$.*+?()[]{}|\\") {
+		return false
+	}
+
+	_, err := compileReservedPattern(entry)
+	return err == nil
+}
+
+// compileReservedPattern compiles a reserved-list regex, case-insensitively so
+// operators can type names in any case.
+func compileReservedPattern(entry string) (*regexp.Regexp, error) {
+	return regexp.Compile("(?i)" + entry)
+}
+
 // IsReserved reports whether name is reserved: the union of the hardcoded
-// stdlib list and the reserved_names table. When no database is set up (unit
-// tests, tooling) only the hardcoded list applies.
+// stdlib list and the reserved_names table. Plain entries match exactly;
+// entries with regex syntax match case-insensitively anywhere in the name, so
+// "^emo" reserves every name starting with "emo". When no database is set up
+// (unit tests, tooling) only the hardcoded list applies.
 func IsReserved(name string) bool {
 	if reservedNames[name] {
 		return true
@@ -62,8 +103,30 @@ func IsReserved(name string) bool {
 		return false
 	}
 
-	exists, err := repo.ExistsWhere[models.ReservedName](sql.H{"name": name})
-	return err == nil && exists
+	entries, err := repo.FindAll[models.ReservedName]()
+	if err != nil {
+		return false
+	}
+
+	for _, entry := range entries {
+		if reservedEntryMatches(entry.Name, name) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func reservedEntryMatches(entry, name string) bool {
+	if entry == name {
+		return true
+	}
+	if ValidNamePart(entry) {
+		return false
+	}
+
+	re, err := compileReservedPattern(entry)
+	return err == nil && re.MatchString(name)
 }
 
 // SeedReservedNames inserts the hardcoded stdlib list into reserved_names.

@@ -44,7 +44,7 @@ func PublishAction(c *gin.Context) {
 	name := result.Manifest.ShortName()
 
 	if emoji.IsReserved(owner) {
-		respondError(c, http.StatusForbidden, "name_reserved", owner+" is reserved for the official stdlib")
+		respondError(c, http.StatusForbidden, "name_reserved", owner+" is reserved")
 		return
 	}
 	if !orgs.CanPublishAs(user, owner) {

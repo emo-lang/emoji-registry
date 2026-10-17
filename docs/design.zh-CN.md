@@ -301,7 +301,7 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 - `versions`(package_id, version, checksum, archive_sha256, targets, deps, size,
   yanked_at, user_id, storage_key)
 - `reserved_names`(name, reason)——短名保留名单,启动时从硬编码 stdlib 名单播种,
-  运营可扩充
+  运营可扩充;条目可以是普通名称(精确匹配)或正则表达式(忽略大小写,如 `^emo`)
 - `downloads`(version_id, date, count)——按版本按日的聚合表。配置了 `REDIS` 时下载先
   INCR 到 Redis,由后台 flusher 每分钟批量落库;无 Redis 时同步写库。
 
