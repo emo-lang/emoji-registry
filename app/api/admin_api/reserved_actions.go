@@ -22,14 +22,14 @@ func ReservedAction(c *gin.Context) {
 	renderReserved(c, "", http.StatusOK)
 }
 
-// AddReservedAction reserves a name. Re-reserving an existing name updates
-// its reason (idempotent).
+// AddReservedAction reserves a name or a regular expression. Re-reserving an
+// existing entry updates its reason (idempotent).
 func AddReservedAction(c *gin.Context) {
 	name := strings.TrimSpace(c.PostForm("name"))
 	reason := strings.TrimSpace(c.PostForm("reason"))
 
-	if !emoji.ValidNamePart(name) {
-		renderReserved(c, "Name must be a lowercase identifier: a letter, then letters, digits or _.", http.StatusUnprocessableEntity)
+	if !emoji.ValidReservedEntry(name) {
+		renderReserved(c, "Name must be a lowercase identifier or a regular expression, e.g. ^emo.", http.StatusUnprocessableEntity)
 		return
 	}
 

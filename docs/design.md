@@ -331,7 +331,8 @@ This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
 - `versions` (package_id, version, checksum, archive_sha256, targets, deps, size,
   yanked_at, user_id, storage_key)
 - `reserved_names` (name, reason) — the short-name reserved list, seeded at boot from
-  the hardcoded stdlib list and extended by operators
+  the hardcoded stdlib list and extended by operators; an entry is a plain name
+  (exact match) or a case-insensitive regular expression (e.g. `^emo`)
 - `downloads` (version_id, date, count) — per-version per-day aggregate. With
   `REDIS` configured, downloads are counted with INCR and flushed into this table
   by a background flusher every minute; without Redis the write is synchronous.

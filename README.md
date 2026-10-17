@@ -22,7 +22,9 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   manage members. Usernames and org names share one namespace
 - Reserved short names live in the `reserved_names` table (seeded from the
   stdlib list at boot) plus a hardcoded fallback; admins manage the DB list at
-  `/admin/reserved`
+  `/admin/reserved`. Entries are plain names (exact match) or regular
+  expressions matched case-insensitively, so `^emo` blocks every username,
+  organization and scope starting with `emo`
 - Admin console at `/admin`: every published package (private ones included)
   listed newest first, reserved-name management, a force-delete (purge)
   behind a typed confirmation that removes a package from the database and
@@ -274,8 +276,10 @@ rate-limit budgets and download counters.
 ### 2. Sign in to the admin console
 
 The admin console at `/admin` lists every published package — private ones
-included — newest first, and manages the reserved top-level names (`net`,
-`http`, …) at `/admin/reserved`. Each row offers a force delete: typing
+included — newest first, and manages the reserved names (`net`, `http`, …) at
+`/admin/reserved`: plain entries match exactly, while entries with regex
+syntax (such as `^emo`) match case-insensitively anywhere in the candidate
+name. Each row offers a force delete: typing
 `I want to purge this package <owner>/<name>` exactly removes the package —
 every version, its download counts and all stored files; there is no undo.
 `/admin/accounts` lists every user account and organization with a lock

@@ -122,7 +122,7 @@ func MemberViews(orgID sql.IdType) ([]MemberView, error) {
 // share one namespace because both act as package scopes.
 func NameTakenReason(name string) (string, error) {
 	if emoji.IsReserved(name) {
-		return name + " is reserved for the official stdlib", nil
+		return name + " is reserved", nil
 	}
 
 	if exists, err := repo.ExistsWhere[models.User](sql.H{"username": name}); err != nil {
