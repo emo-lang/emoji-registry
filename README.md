@@ -211,12 +211,19 @@ docs/design.md    # the authoritative protocol contract
 
 ```bash
 docker build -t emo-registry .
-docker run -p 1905:1905 -e DSN="sqlite://data/registry.db" emo-registry db:migrate
-docker run -p 1905:1905 -e DSN="sqlite://data/registry.db" emo-registry
+docker run -d --name emo-registry -p 1905:1905 \
+  -v registry-data:/app/data \
+  -e DSN="sqlite://data/registry.db" emo-registry
 ```
 
-Set `DSN` to a PostgreSQL/MySQL URL for anything beyond a single container;
-mount a volume at `/app/data` to keep the SQLite file and stored archives.
+The image entrypoint applies migrations (`db:migrate`) before starting the
+server, so `docker compose up` works against an empty database. To migrate
+without starting the server, pass the command explicitly:
+`docker run --rm ... emo-registry db:migrate`. Set `DSN` to a
+PostgreSQL/MySQL URL for anything beyond a single container; mount a volume at
+`/app/data` to keep the SQLite file and stored archives. When running several
+replicas, migrate once ahead of the rollout instead of letting every replica
+migrate on boot.
 
 ## Deploying on a company intranet
 
@@ -234,9 +241,12 @@ developers ──> nginx (TLS) ──> emo-registry (:1905)
 
 ```bash
 docker build -t emo-registry .
+
+# Optional: migrate ahead of the rollout. The entrypoint also migrates on
+# every server start; running it once here keeps replica starts from racing.
 docker run --rm \
   -e DSN="postgres://registry:secret@db.internal:5432/registry" \
-  emo-registry db:migrate        # one-off: apply migrations
+  emo-registry db:migrate
 
 docker run -d --name emo-registry -p 1905:1905 \
   -e AIRWAY_ENV=production \

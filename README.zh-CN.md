@@ -191,12 +191,16 @@ docs/design.md    # 权威协议契约
 
 ```bash
 docker build -t emo-registry .
-docker run -p 1905:1905 -e DSN="sqlite://data/registry.db" emo-registry db:migrate
-docker run -p 1905:1905 -e DSN="sqlite://data/registry.db" emo-registry
+docker run -d --name emo-registry -p 1905:1905 \
+  -v registry-data:/app/data \
+  -e DSN="sqlite://data/registry.db" emo-registry
 ```
 
-超过单容器规模时请把 `DSN` 换成 PostgreSQL/MySQL;挂载 `/app/data` 卷可持久化
-SQLite 文件与已存储的归档。
+镜像的 entrypoint 会在启动服务前自动执行迁移(`db:migrate`),因此
+`docker compose up` 可以直接对着空库启动。只想迁移、不启动服务时显式传入命令:
+`docker run --rm ... emo-registry db:migrate`。超过单容器规模时请把 `DSN` 换成
+PostgreSQL/MySQL;挂载 `/app/data` 卷可持久化 SQLite 文件与已存储的归档。
+多副本部署时建议在发布前单独执行一次迁移,而不是让每个副本启动时各自迁移。
 
 ## 企业内网部署
 
@@ -214,9 +218,12 @@ SQLite 文件与已存储的归档。
 
 ```bash
 docker build -t emo-registry .
+
+# 可选:在发布前先执行迁移。entrypoint 在每次启动服务时也会迁移;
+# 提前执行可以避免多副本同时启动时互相竞争。
 docker run --rm \
   -e DSN="postgres://registry:secret@db.internal:5432/registry" \
-  emo-registry db:migrate        # 一次性:执行迁移
+  emo-registry db:migrate
 
 docker run -d --name emo-registry -p 1905:1905 \
   -e AIRWAY_ENV=production \
