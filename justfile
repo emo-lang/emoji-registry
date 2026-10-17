@@ -4,6 +4,12 @@ dev:
 compose:
   docker-compose up --build
 
+docker:
+  docker build . --platform=linux/amd64 -t reg.mindwork.cool/emoji-registry:latest
+
+push:
+  docker push reg.mindwork.cool/emoji-registry:latest
+
 install-deps:
   go install github.com/air-verse/air@latest
   brew install tmux
