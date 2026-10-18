@@ -68,7 +68,8 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
 - Web UI: home page with recent and most-downloaded packages, paginated
   search, package detail pages, user profile pages (`/u/:username`, listing
   the packages an account has published), signup/login, token and
-  organization management
+  organization management, and a Terms of Service page (`/terms`) covering
+  acceptable use, prohibited content and copyright enforcement
 
 ## Quick start
 
