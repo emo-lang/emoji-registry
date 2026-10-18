@@ -290,7 +290,14 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 
 ## 6. 服务端数据模型
 
-- `users`(username, email, password_digest, locked)
+- `users`(username, email, password_digest, locked, totp_secret, totp_enabled)
+  ——`totp_secret` 是 Base32 共享密钥,绑定完成前为空;`totp_enabled` 只在首个
+  验证码校验通过后置位
+- `sessions`(user_id, token, expires_at, totp_pending)——`totp_pending` 标记已过
+  密码校验、但尚未完成 2FA 的 signup/login 会话(15 分钟 TTL);这类会话除了
+  绑定/验证流程外,不能访问任何页面或 `/api/v1` 路由
+- `totp_recovery_codes`(user_id, code_hash, used_at)——每次绑定 10 个 SHA-256
+  哈希,一次性使用;重新生成会整体替换旧集合
 - `organizations`(name, display_name, user_id, locked)+ `memberships`(organization_id,
   user_id, role)——用户名与组织名共用一个命名空间:两者都能作为包的 scope,注册时
   跨两张表查重。组织的任何成员(owner 或 member)都能以组织 scope 发布、yank、
@@ -325,6 +332,17 @@ PATCH /api/v1/packages/:owner/:name   (Authorization: Bearer <token>)
 - 限流:发布按 token 用户(30 次/小时),signup/login 与搜索按 IP(10 次/分钟、
   60 次/分钟)。配置了 `REDIS` 时计数器在 Redis,否则进程内固定窗口。
 - 只存 token 哈希;密码 bcrypt。
+- 强制 TOTP 两步验证(RFC 6238,SHA-1,30 秒步长,6 位,允许 ±1 步以容忍时钟偏差)。
+  注册后以及每次登录后的首个页面都会进入绑定/验证流程;流程完成前,站内其他页面
+  与 `/api/v1` 对该会话一律关闭。验证成功会轮换 session token 并延长到正常 TTL,
+  避免 2FA 之前的 cookie 被复用。每次绑定生成 10 个一次性恢复码,只存哈希,并以
+  原子方式消费;不提供主动关闭 2FA,只能由管理员重置。
+- 账号完成绑定后,HTTP Basic Auth(email + 密码)一律返回 `401 totp_required`;
+  调用方改用 Web session 创建 API token,再以 Bearer token 访问。已绑定账号调用
+  `POST /api/v1/login` 必须携带 `code`,未绑定时返回 `403 totp_setup_required`。
+- 管理员可在 `/admin/accounts` 重置某个用户的 2FA
+  (`POST /admin/accounts/users/:id/reset-2fa`),清空密钥与恢复码,并删除该用户的
+  全部会话。
 
 ## 8. 分期路线
 

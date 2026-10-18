@@ -319,7 +319,15 @@ This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
 
 ## 6. Server data model
 
-- `users` (username, email, password_digest, locked)
+- `users` (username, email, password_digest, locked, totp_secret, totp_enabled)
+  — `totp_secret` is the Base32 shared secret, empty until enrollment;
+  `totp_enabled` flips only after the first code is verified
+- `sessions` (user_id, token, expires_at, totp_pending) — `totp_pending` marks a
+  signup/login session that has passed the password check but not yet the 2FA
+  step (15-minute TTL); such a session cannot read any page or `/api/v1` route
+  outside the enrollment/challenge flow
+- `totp_recovery_codes` (user_id, code_hash, used_at) — ten SHA-256 hashes per
+  enrollment, single use; regenerating replaces the whole set
 - `organizations` (name, display_name, user_id, locked) + `memberships` (organization_id,
   user_id, role) — usernames and organization names share one namespace: both act as
   package scopes, so registration rejects collisions across the two tables. Any
@@ -363,6 +371,20 @@ This keeps the manifest's fixed-schema purity and keeps `emo publish` trivial.
   (10/minute) and search (60/minute). Counters live in Redis when `REDIS` is
   configured, otherwise in-process fixed windows.
 - Only token hashes stored; passwords bcrypt.
+- Mandatory TOTP two-factor authentication (RFC 6238, SHA-1, 30 s step, 6
+  digits, ±1 step for clock skew). Signup and the first page load after every
+  login land on enrollment/challenge; the rest of the site and `/api/v1` stay
+  closed to the pending session. Successful verification rotates the session
+  token and extends it to the normal TTL, so a pre-2FA cookie cannot be
+  replayed. Ten one-time recovery codes per enrollment are stored hashed and
+  consumed atomically; disabling 2FA is not offered, only an admin reset.
+- Once an account has enrolled, HTTP Basic Auth (email + password) is rejected
+  with `401 totp_required`; callers mint API tokens from the web session and
+  then use Bearer tokens. `POST /api/v1/login` requires a `code` for enrolled
+  accounts and refuses with `403 totp_setup_required` before enrollment.
+- Admins can reset a user's 2FA from `/admin/accounts`
+  (`POST /admin/accounts/users/:id/reset-2fa`), which clears the secret and
+  recovery codes and drops all of that user's sessions.
 
 ## 8. Phased roadmap
 

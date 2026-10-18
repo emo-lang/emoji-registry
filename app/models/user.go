@@ -13,6 +13,8 @@ type User struct {
 	PasswordDigest string           `db:"password_digest" json:"-"`
 	Admin          bool             `db:"admin" json:"admin"`
 	Locked         bool             `db:"locked" json:"locked"`
+	TOTPSecret     string           `db:"totp_secret" json:"-"`
+	TOTPEnabled    bool             `db:"totp_enabled" json:"totp_enabled"`
 	CreatedAt      time.Time        `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time        `db:"updated_at" json:"updated_at"`
 }

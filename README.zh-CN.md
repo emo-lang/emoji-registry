@@ -11,8 +11,10 @@ Emo 编译器所依赖的通信协议定义在
 
 ## 功能(一期已实现)
 
-- 账号体系:bcrypt 密码、Web session、API token(`emo_<48 hex>`,库里只存
-  SHA-256 哈希,按 `push`/`yank` scope 授权)
+- 账号体系:bcrypt 密码、Web session、强制的 TOTP 两步验证(用认证器 App 扫码绑定,
+  附带 10 个一次性恢复码)以及 API token(`emo_<48 hex>`,库里只存 SHA-256 哈希,
+  按 `push`/`yank` scope 授权)。注册和每次 Web 登录都会先进入 2FA 步骤,完成前
+  无法访问站内其他页面;已有账号在下次 Web 登录时完成绑定
 - 账号与作用域:用户名本身就是一个发布 scope,无需组织即可发布 `<username>/<pkg>`。
   组织是*共享* scope——成员都能以组织 scope 发布、yank、改元信息,owner 管理成员;
   用户名与组织名共用一个命名空间
@@ -23,7 +25,8 @@ Emo 编译器所依赖的通信协议定义在
   (purge)——输入 `I want to purge this package <owner>/<name>` 确认后,从数据库与
   存储中整体移除该包;另可管理保留名单;还可在 `/admin/accounts` 锁定账号或组织
   ——锁定后其包照常展示,但该 scope 下的下载、解析与写入一律返回
-  `403 owner_locked`,解锁即恢复。可用 `.env` 里的
+  `403 owner_locked`,解锁即恢复。每个用户行还有一个 **Reset 2FA** 按钮,会清空
+  密钥、恢复码和全部会话,让无法登录的用户在下次登录时重新绑定。可用 `.env` 里的
   `ADMIN_USERNAME`/`ADMIN_PASSWORD` 在 `/admin/login` 登录,或用
   `go run . admin:grant <username>` 提升站点账号
 - 发布:上传 `.emoji` 归档(gzip tar),服务端校验 manifest、计算与编译器一致的
@@ -87,12 +90,10 @@ curl -X POST http://127.0.0.1:1905/api/v1/signup \
   -H 'Content-Type: application/json' \
   -d '{"username":"foo","email":"foo@example.com","password":"super-secret"}'
 
-# 2. 签发 API token(用 email + 密码走 basic auth;明文 token 只返回这一次)
-curl -X POST http://127.0.0.1:1905/api/v1/tokens \
-  -u foo@example.com:super-secret \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"cli","scopes":["push","yank"]}'
-# => {"token":"emo_..."}
+# 2. 在浏览器里绑定认证器 App 并签发 API token:
+#    在 http://127.0.0.1:1905/login 登录,在 2FA 绑定页扫描二维码、保存恢复码,
+#    然后到 /tokens 创建 token(明文只显示这一次)。启用 2FA 的账号不能用
+#    basic auth,所以 token 通过 Web session 创建。
 
 # 3. 构造 .emoji 归档——文件名为 <owner>-<name>-<version>.emoji 的 gzip tar,
 #    内含 package.emo 与 .emo/.c/.h 源文件
@@ -143,7 +144,7 @@ emo deps resolve     # 走协议 A;指向任何自托管实例都能工作
 | 端点 | 认证 | 用途 |
 |---|---|---|
 | `POST /api/v1/signup` | 无 | 创建账号 |
-| `POST /api/v1/login` | 无 | 换取 web session cookie |
+| `POST /api/v1/login` | 无 | 换取 web session cookie(需附带 2FA `code`) |
 | `POST /api/v1/tokens` | session 或 basic | 签发 API token(明文仅显示一次) |
 | `GET /api/v1/tokens` | session 或 basic | 列出我的 token |
 | `DELETE /api/v1/tokens/:id` | session 或 basic | 吊销 token |
@@ -162,8 +163,15 @@ emo deps resolve     # 走协议 A;指向任何自托管实例都能工作
 | `GET /:owner/:name/:version/package.emo` | 无 | 协议 A:manifest 原文 |
 | `GET /:owner/:name/:version/<path>` | 无 | 协议 A:单个源文件(`.emo`/`.c`/`.h`) |
 
+账号未在 Web 界面完成 2FA 绑定时,`POST /api/v1/login` 返回
+`403 totp_setup_required`;绑定之后必须携带 `code`(TOTP 或恢复码):缺失返回
+`401 totp_required`,错误返回 `401 invalid_code`。`POST /api/v1/tokens` 的
+basic auth 只在绑定前可用,启用 2FA 后返回 `401 totp_required`,请改用 Web
+session(`/tokens`)创建 token。Bearer token 不受影响。
+
 Web 页面:`/`、`/search`、`/p/:owner/:name`、`/u/:username`、`/signup`、
-`/login`、`/tokens`、`/orgs`(需登录)与 `/admin`(仅管理员)。
+`/login`、`/login/2fa`、`/account/2fa/setup`、`/tokens`、`/orgs`、
+`/account/2fa`(需登录)与 `/admin`(仅管理员)。
 
 ## 开发
 

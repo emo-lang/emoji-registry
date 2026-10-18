@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/accounts"
 	"github.com/emo-lang/emoji-registry/app/views/admin"
 )
 
@@ -39,13 +40,15 @@ func AccountsAction(c *gin.Context) {
 	rows := make([]admin.AccountRow, 0, len(users)+len(organizations))
 	for _, user := range users {
 		rows = append(rows, admin.AccountRow{
-			Kind:      "user",
-			Name:      user.Username,
-			URL:       "/u/" + user.Username,
-			Packages:  counts[user.Username],
-			Locked:    user.Locked,
-			CreatedAt: user.CreatedAt,
-			Path:      accountTogglePath("users", user.ID, user.Locked),
+			Kind:         "user",
+			Name:         user.Username,
+			URL:          "/u/" + user.Username,
+			Packages:     counts[user.Username],
+			Locked:       user.Locked,
+			TwoFA:        user.TOTPEnabled,
+			CreatedAt:    user.CreatedAt,
+			Path:         accountTogglePath("users", user.ID, user.Locked),
+			Reset2FAPath: "/admin/accounts/users/" + strconv.FormatInt(int64(user.ID), 10) + "/reset-2fa",
 		})
 	}
 	for _, org := range organizations {
@@ -81,6 +84,23 @@ func LockAccountAction(c *gin.Context) {
 // reversible half of the lock.
 func UnlockAccountAction(c *gin.Context) {
 	setAccountLocked(c, false)
+}
+
+// Reset2FAAction clears a user's second factor and signs them out, so the
+// next login starts enrollment again.
+func Reset2FAAction(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		notFound(c)
+		return
+	}
+
+	if err := accounts.ResetTOTP(sql.IdType(id)); err != nil {
+		render.Error(c, err)
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/accounts")
 }
 
 // setAccountLocked flips the lock flag on the :kind/:id account. kind is

@@ -1,0 +1,183 @@
+package twofa
+
+import (
+	"strconv"
+
+	"github.com/emo-lang/emoji-registry/app/views/layouts"
+)
+
+// RecoveryCodes renders a recovery-code block with a copy button.
+templ RecoveryCodes(codes string) {
+	<style>
+		.recovery-codes { position: relative; }
+		.recovery-codes-text { padding-right: 52px; }
+		.recovery-copy {
+			position: absolute; top: 8px; right: 8px;
+			display: inline-flex; align-items: center; justify-content: center;
+			width: 28px; height: 28px; padding: 0; cursor: pointer;
+			background: var(--er-bg); border: 1px solid var(--er-line);
+			border-radius: 6px; color: var(--er-muted);
+		}
+		.recovery-copy:hover { color: var(--er-accent); border-color: var(--er-accent); }
+		.recovery-copy .icon-check { display: none; }
+		.recovery-copy.copied { color: var(--er-accent); border-color: var(--er-accent); }
+		.recovery-copy.copied .icon-copy { display: none; }
+		.recovery-copy.copied .icon-check { display: block; }
+	</style>
+	<div class="recovery-codes">
+		<button class="recovery-copy" type="button" title="Copy recovery codes" aria-label="Copy recovery codes">
+			<svg class="icon-copy" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+				<rect x="5.5" y="5.5" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
+				<path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
+			</svg>
+			<svg class="icon-check" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+				<path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+		</button>
+		<pre class="er-code recovery-codes-text" style="font-size: 16px; line-height: 1.7; user-select: all;">{ codes }</pre>
+	</div>
+	<script>
+		(function () {
+			var script = document.currentScript;
+			var root = script && script.previousElementSibling;
+			if (!root) return;
+
+			var button = root.querySelector(".recovery-copy");
+			var codes = root.querySelector("pre");
+			if (!button || !codes) return;
+
+			function copyText(text) {
+				if (navigator.clipboard && window.isSecureContext) {
+					return navigator.clipboard.writeText(text);
+				}
+				return new Promise(function (resolve, reject) {
+					var area = document.createElement("textarea");
+					area.value = text;
+					area.style.position = "fixed";
+					area.style.top = "-1000px";
+					document.body.appendChild(area);
+					area.select();
+					var ok = false;
+					try { ok = document.execCommand("copy"); } catch (e) {}
+					document.body.removeChild(area);
+					if (ok) resolve(); else reject(new Error("copy failed"));
+				});
+			}
+
+			button.addEventListener("click", function () {
+				copyText(codes.textContent).then(function () {
+					button.classList.add("copied");
+					button.title = "Copied";
+					button.setAttribute("aria-label", "Copied");
+					setTimeout(function () {
+						button.classList.remove("copied");
+						button.title = "Copy recovery codes";
+						button.setAttribute("aria-label", "Copy recovery codes");
+					}, 1500);
+				}, function () {
+					button.title = "Copy failed";
+				});
+			});
+		})();
+	</script>
+}
+
+// Setup renders the enrollment page: scan the QR code (or type the secret)
+// and confirm with a current code.
+templ Setup(username string, qrDataURI string, secret string, err string) {
+	@layouts.Base("Set up two-factor authentication", username, false) {
+		<main class="er-page" style="max-width: 480px;">
+			<style>
+				.totp-qr { display: block; width: 220px; height: 220px; margin: 16px auto; image-rendering: pixelated; }
+				.totp-secret { font-size: 15px; user-select: all; letter-spacing: 1px; }
+			</style>
+			<h1>Set up two-factor authentication</h1>
+			<p class="er-muted">Two-factor authentication is required. Scan this code with an authenticator app (Google Authenticator, 1Password, Authy, …), or enter the secret manually.</p>
+			<img class="totp-qr" src={ qrDataURI } alt="TOTP QR code" width="220" height="220"/>
+			<p class="er-muted">Secret key:</p>
+			<pre class="er-code totp-secret">{ secret }</pre>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<form method="post" action="/account/2fa/setup">
+				<div class="er-field">
+					<label for="code">Enter the 6-digit code from your app</label>
+					<input class="er-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus/>
+				</div>
+				<button class="er-btn" type="submit">Enable two-factor authentication</button>
+			</form>
+		</main>
+	}
+}
+
+// Recovery shows the one-time recovery codes right after enrollment.
+templ Recovery(username string, admin bool, codes string) {
+	@layouts.Base("Recovery codes", username, admin) {
+		<main class="er-page" style="max-width: 560px;">
+			<h1>Save your recovery codes</h1>
+			<p>If you lose access to your authenticator app, each of these codes signs you in once. <strong>They will never be shown again.</strong></p>
+			@RecoveryCodes(codes)
+			<p class="er-muted">Store them somewhere safe and offline. You can generate a new set later from the security page, as long as you can still produce a TOTP code.</p>
+			<p><a class="er-btn" href="/">Continue to the registry</a></p>
+		</main>
+	}
+}
+
+// Challenge asks a pending session for its second factor.
+templ Challenge(username string, err string) {
+	@layouts.Base("Two-factor authentication", username, false) {
+		<main class="er-page" style="max-width: 420px;">
+			<h1>Two-factor authentication</h1>
+			<p class="er-muted">Enter the 6-digit code from your authenticator app, or one of your recovery codes.</p>
+			if err != "" {
+				<div class="er-error">{ err }</div>
+			}
+			<form method="post" action="/login/2fa">
+				<div class="er-field">
+					<label for="code">Code</label>
+					<input class="er-input" id="code" name="code" autocomplete="one-time-code" required autofocus/>
+				</div>
+				<button class="er-btn" type="submit">Verify</button>
+			</form>
+		</main>
+	}
+}
+
+// Security is the account security page: current second-factor status and
+// recovery-code regeneration.
+templ Security(username string, admin bool, enabled bool, remaining int, newCodes string, err string) {
+	@layouts.Base("Account security", username, admin) {
+		<main class="er-page" style="max-width: 560px;">
+			<h1>Account security</h1>
+			<section>
+				<h2>Two-factor authentication</h2>
+				if enabled {
+					<p>Two-factor authentication is enabled for this account.</p>
+					<p class="er-muted">Unused recovery codes: { strconv.Itoa(remaining) }.</p>
+				} else {
+					<p>Two-factor authentication is not enabled for this session. Sign out and sign in again to complete enrollment.</p>
+				}
+			</section>
+			if enabled {
+				<section style="margin-top: 28px;">
+					<h2>Recovery codes</h2>
+					if newCodes != "" {
+						<p>Your new codes — <strong>they will never be shown again</strong>:</p>
+						@RecoveryCodes(newCodes)
+					}
+					if err != "" {
+						<div class="er-error">{ err }</div>
+					}
+					<form method="post" action="/account/2fa/recovery-codes">
+						<p class="er-muted">Generating new codes invalidates the old ones. Confirm with a current 6-digit code from your app.</p>
+						<div class="er-field">
+							<label for="code">Authenticator code</label>
+							<input class="er-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required/>
+						</div>
+						<button class="er-btn" type="submit">Generate new recovery codes</button>
+					</form>
+				</section>
+			}
+		</main>
+	}
+}

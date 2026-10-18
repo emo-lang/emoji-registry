@@ -200,7 +200,7 @@ func Base(title string, username string, admin bool, opts ...BaseOptions) templ.
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</a> <a href=\"/orgs\">Orgs</a> <a href=\"/tokens\">Tokens</a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</a> <a href=\"/orgs\">Orgs</a> <a href=\"/tokens\">Tokens</a> <a href=\"/account/2fa\">Security</a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

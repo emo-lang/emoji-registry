@@ -64,6 +64,9 @@ templ Accounts(username string, adminFlag bool, rows []AccountRow) {
 								} else {
 									<span class="chip">active</span>
 								}
+								if row.TwoFA {
+									<span class="chip">2FA</span>
+								}
 							</td>
 							<td class="actions">
 								<form method="post" action={ templ.SafeURL(row.Path) }>
@@ -73,6 +76,11 @@ templ Accounts(username string, adminFlag bool, rows []AccountRow) {
 										<button type="submit" class="er-btn danger">Lock</button>
 									}
 								</form>
+								if row.Reset2FAPath != "" && row.TwoFA {
+									<form method="post" action={ templ.SafeURL(row.Reset2FAPath) }>
+										<button type="submit" class="er-btn danger">Reset 2FA</button>
+									</form>
+								}
 							</td>
 						</tr>
 					}
