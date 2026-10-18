@@ -168,6 +168,14 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 					padding: 10px 14px; margin-bottom: 16px; font-size: 14px;
 					border: 1px solid #c66; border-radius: 6px; color: #b3453a;
 				}
+				.er-footer {
+					width: min(1120px, calc(100% - 48px)); margin: 0 auto;
+					padding: 20px 0 36px; border-top: 1px solid var(--er-line);
+					display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+					font-size: 13px; color: var(--er-muted);
+				}
+				.er-footer a { color: var(--er-muted); text-decoration: none; }
+				.er-footer a:hover { color: var(--er-accent); }
 			</style>
 			@assets.Stylesheet()
 			if utils.AppConfig().IsLocal {
@@ -216,6 +224,9 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 					@Sidebar()
 				}
 			</div>
+			<footer class="er-footer">
+				<a href="/terms">Terms of Service</a>
+			</footer>
 			<script>
 				// Flip between light and dark, remembering the choice.
 				(function () {

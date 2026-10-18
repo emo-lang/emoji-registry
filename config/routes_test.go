@@ -41,6 +41,7 @@ func TestRoutesRegistersCoreEndpoints(t *testing.T) {
 		"GET /:owner/:name/versions",
 		"GET /:owner/:name/:version/*filepath",
 		"GET /search",
+		"GET /terms",
 		"GET /p/:owner/:name",
 		"POST /p/:owner/:name/visibility",
 		"GET /signup",

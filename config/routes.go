@@ -21,6 +21,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/api/registry_api"
 	"github.com/emo-lang/emoji-registry/app/api/search_api"
 	"github.com/emo-lang/emoji-registry/app/api/storage_api"
+	"github.com/emo-lang/emoji-registry/app/api/terms_api"
 	"github.com/emo-lang/emoji-registry/app/api/tokens_api"
 	"github.com/emo-lang/emoji-registry/app/api/users_api"
 	"github.com/emo-lang/emoji-registry/app/assets"
@@ -47,6 +48,7 @@ func PublicRoutes(r *gin.Engine) {
 	r.Use(middlewares.LoadSession())
 
 	r.GET("/", home_api.IndexAction)
+	r.GET("/terms", terms_api.IndexAction)
 	r.GET("/search", middlewares.LimitSearch(), search_api.SearchAction)
 	r.GET("/p/:owner/:name", packages_api.ShowAction)
 	r.POST("/p/:owner/:name/visibility", middlewares.RequireWebAuth(), packages_api.SetVisibilityAction)
