@@ -7,7 +7,7 @@ tool github.com/a-h/templ/cmd/templ
 require (
 	github.com/a-h/templ v0.3.1070
 	github.com/alicebob/miniredis/v2 v2.39.0
-	github.com/daqing/airway v0.19.1
+	github.com/daqing/airway v0.21.0
 	github.com/daqing/airway-ratelimit-plugin v0.2.0
 	github.com/daqing/airway-redis-plugin v0.1.0
 	github.com/gin-gonic/gin v1.12.0
