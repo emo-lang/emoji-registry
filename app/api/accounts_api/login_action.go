@@ -2,7 +2,6 @@ package accounts_api
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/daqing/airway/lib/repo"
 	"github.com/daqing/airway/lib/sql"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/accounts"
 )
 
 // LoginAction handles POST /api/v1/login: email + password in exchange for
@@ -25,7 +25,7 @@ func LoginAction(c *gin.Context) {
 		return
 	}
 
-	user, err := repo.FindOneBy[models.User](sql.H{"email": strings.TrimSpace(input.Email)})
+	user, err := repo.FindOneBy[models.User](sql.H{"email": accounts.NormalizeEmail(input.Email)})
 	if err != nil || user == nil || !utils.ComparePassword(utils.PasswordDigest(user.PasswordDigest), input.Password) {
 		respondError(c, http.StatusUnauthorized, "unauthorized", "invalid email or password")
 		return

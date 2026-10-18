@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/emo-lang/emoji-registry/app/models"
+	"github.com/emo-lang/emoji-registry/app/services/accounts"
 )
 
 // AccountAuth accepts either a valid web session cookie or HTTP basic auth
@@ -24,7 +25,7 @@ func AccountAuth() gin.HandlerFunc {
 			return
 		}
 
-		user, err := repo.FindOneBy[models.User](sql.H{"email": email})
+		user, err := repo.FindOneBy[models.User](sql.H{"email": accounts.NormalizeEmail(email)})
 		if err != nil || user == nil || !utils.ComparePassword(utils.PasswordDigest(user.PasswordDigest), password) {
 			abortUnauthorized(c, "invalid email or password")
 			return

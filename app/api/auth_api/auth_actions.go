@@ -1,6 +1,7 @@
 package auth_api
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -12,8 +13,7 @@ import (
 
 	"github.com/emo-lang/emoji-registry/app/middlewares"
 	"github.com/emo-lang/emoji-registry/app/models"
-	"github.com/emo-lang/emoji-registry/app/services/emoji"
-	"github.com/emo-lang/emoji-registry/app/services/orgs"
+	"github.com/emo-lang/emoji-registry/app/services/accounts"
 	"github.com/emo-lang/emoji-registry/app/views/auth"
 )
 
@@ -26,53 +26,20 @@ func ShowSignupAction(c *gin.Context) {
 // and signs them in with a fresh session cookie.
 func SignupAction(c *gin.Context) {
 	username := strings.TrimSpace(c.PostForm("username"))
-	email := strings.TrimSpace(c.PostForm("email"))
+	email := accounts.NormalizeEmail(c.PostForm("email"))
 	password := c.PostForm("password")
 
 	fail := func(message string) {
 		render.HTMLStatus(c, http.StatusUnprocessableEntity, auth.Signup(message, username, email))
 	}
 
-	if !emoji.ValidNamePart(username) {
-		fail("Username must be a lowercase identifier: a letter, then letters, digits or _.")
-		return
-	}
-	if reason, err := orgs.NameTakenReason(username); err != nil {
-		render.Error(c, err)
-		return
-	} else if reason != "" {
-		fail(reason + ".")
-		return
-	}
-	if !strings.Contains(email, "@") || len(email) > 255 {
-		fail("A valid email address is required.")
-		return
-	}
-	if len(password) < 8 {
-		fail("Password must be at least 8 characters.")
-		return
-	}
-
-	if exists, err := repo.ExistsWhere[models.User](sql.H{"email": email}); err != nil {
-		render.Error(c, err)
-		return
-	} else if exists {
-		fail("Email " + email + " is already registered.")
-		return
-	}
-
-	digest, err := utils.EncryptPassword(password)
+	user, err := accounts.Signup(username, email, password)
 	if err != nil {
-		render.Error(c, err)
-		return
-	}
-
-	user, err := repo.CreateFrom[models.User](sql.H{
-		"username":        username,
-		"email":           email,
-		"password_digest": digest,
-	})
-	if err != nil {
+		var signupErr *accounts.SignupError
+		if errors.As(err, &signupErr) {
+			fail(signupErr.Message + ".")
+			return
+		}
 		render.Error(c, err)
 		return
 	}
@@ -92,7 +59,7 @@ func ShowLoginAction(c *gin.Context) {
 
 // LoginAction processes the login form.
 func LoginAction(c *gin.Context) {
-	email := strings.TrimSpace(c.PostForm("email"))
+	email := accounts.NormalizeEmail(c.PostForm("email"))
 	password := c.PostForm("password")
 
 	fail := func(message string) {
