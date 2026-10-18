@@ -14,6 +14,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.8.0
 	github.com/yuin/goldmark v1.6.0
+	rsc.io/qr v0.2.0
 )
 
 require (

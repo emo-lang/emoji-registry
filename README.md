@@ -14,8 +14,12 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
 
 ## Features (phase 1)
 
-- Accounts with bcrypt passwords, web sessions, and API tokens
-  (`emo_<48 hex>`, only the SHA-256 hash is stored, scoped `push`/`yank`)
+- Accounts with bcrypt passwords, web sessions, mandatory TOTP two-factor
+  authentication (QR enrollment with an authenticator app plus ten one-time
+  recovery codes), and API tokens (`emo_<48 hex>`, only the SHA-256 hash is
+  stored, scoped `push`/`yank`). Signup and every web login land on the 2FA
+  step before the rest of the site is reachable; existing accounts enroll on
+  their next web login
 - Accounts and scopes: your username is itself a publish scope, so you can
   publish `<username>/<pkg>` with no organization. Organizations are *shared*
   scopes — members publish, yank and edit metadata under the org scope; owners
@@ -31,7 +35,9 @@ Built with [Airway](https://github.com/daqing/airway) (Gin + templ).
   storage entirely, and account locking at `/admin/accounts` — a locked
   account or organization keeps its packages listed, but nothing under its
   scope can be downloaded, resolved or modified (`403 owner_locked`) until
-  unlocked. Sign in either with the
+  unlocked. Each user row also has a **Reset 2FA** button that clears the
+  secret, recovery codes and all sessions, so a locked-out user re-enrolls at
+  their next login. Sign in either with the
   `ADMIN_USERNAME`/`ADMIN_PASSWORD` credentials at `/admin/login`, or promote a
   site account with `go run . admin:grant <username>`
 - Publishing: upload a `.emoji` archive (gzip tar), server-side manifest
@@ -103,13 +109,11 @@ curl -X POST http://127.0.0.1:1905/api/v1/signup \
   -H 'Content-Type: application/json' \
   -d '{"username":"foo","email":"foo@example.com","password":"super-secret"}'
 
-# 2. Mint an API token (basic auth with email + password; the plaintext
-#    token is returned exactly once)
-curl -X POST http://127.0.0.1:1905/api/v1/tokens \
-  -u foo@example.com:super-secret \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"cli","scopes":["push","yank"]}'
-# => {"token":"emo_..."}
+# 2. Enroll an authenticator app and mint an API token in the browser:
+#    sign in at http://127.0.0.1:1905/login, scan the QR code on the 2FA
+#    setup page, save the recovery codes, then create a token at /tokens
+#    (the plaintext is shown exactly once). Accounts with 2FA enabled
+#    cannot use basic auth, so token creation goes through the web session.
 
 # 3. Build a .emoji archive — a gzip tar whose name is
 #    <owner>-<name>-<version>.emoji, containing package.emo + the
@@ -164,7 +168,7 @@ real HTTP status. Full request/response schemas: docs/design.md §5.
 | Endpoint | Auth | Purpose |
 |---|---|---|
 | `POST /api/v1/signup` | — | create an account |
-| `POST /api/v1/login` | — | web session cookie |
+| `POST /api/v1/login` | — | web session cookie (send the 2FA `code`) |
 | `POST /api/v1/tokens` | session or basic | mint an API token (shown once) |
 | `GET /api/v1/tokens` | session or basic | list your tokens |
 | `DELETE /api/v1/tokens/:id` | session or basic | revoke a token |
@@ -183,8 +187,16 @@ real HTTP status. Full request/response schemas: docs/design.md §5.
 | `GET /:owner/:name/:version/package.emo` | — | protocol A: manifest source |
 | `GET /:owner/:name/:version/<path>` | — | protocol A: individual source file (`.emo`/`.c`/`.h`) |
 
+`POST /api/v1/login` returns `403 totp_setup_required` until the account has
+enrolled in the web UI; afterwards it needs a `code` (TOTP or recovery code):
+missing → `401 totp_required`, wrong → `401 invalid_code`. Basic auth keeps
+working for `POST /api/v1/tokens` only until enrollment; once 2FA is enabled it
+answers `401 totp_required`, so tokens are minted from the web session
+(`/tokens`) instead. Bearer tokens are unaffected.
+
 Web pages: `/`, `/search`, `/p/:owner/:name`, `/u/:username`, `/signup`,
-`/login`, `/tokens`, `/orgs` (login required) and `/admin` (admin only).
+`/login`, `/login/2fa`, `/account/2fa/setup`, `/tokens`, `/orgs`,
+`/account/2fa` (login required) and `/admin` (admin only).
 
 ## Development
 

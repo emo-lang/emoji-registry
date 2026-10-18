@@ -23,6 +23,7 @@ func Routes(r *gin.Engine) {
 		group.GET("/accounts", AccountsAction)
 		group.POST("/accounts/:kind/:id/lock", LockAccountAction)
 		group.POST("/accounts/:kind/:id/unlock", UnlockAccountAction)
+		group.POST("/accounts/users/:id/reset-2fa", Reset2FAAction)
 		group.POST("/packages/:owner/:name/purge", PurgeAction)
 		group.GET("/reserved", ReservedAction)
 		group.POST("/reserved", AddReservedAction)

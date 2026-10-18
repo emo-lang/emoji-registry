@@ -116,9 +116,13 @@ func tokenHasScopes(token *models.APIToken, required []string) bool {
 }
 
 func abortUnauthorized(c *gin.Context, message string) {
+	abortUnauthorizedCode(c, "unauthorized", message)
+}
+
+func abortUnauthorizedCode(c *gin.Context, code, message string) {
 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 		"error": gin.H{
-			"code":    "unauthorized",
+			"code":    code,
 			"message": message,
 		},
 	})

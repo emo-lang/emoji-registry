@@ -23,6 +23,7 @@ import (
 	"github.com/emo-lang/emoji-registry/app/api/storage_api"
 	"github.com/emo-lang/emoji-registry/app/api/terms_api"
 	"github.com/emo-lang/emoji-registry/app/api/tokens_api"
+	"github.com/emo-lang/emoji-registry/app/api/twofa_api"
 	"github.com/emo-lang/emoji-registry/app/api/users_api"
 	"github.com/emo-lang/emoji-registry/app/assets"
 	"github.com/emo-lang/emoji-registry/app/middlewares"
@@ -46,6 +47,7 @@ func Routes(r *gin.Engine) {
 // prefix; see App.Handler.
 func PublicRoutes(r *gin.Engine) {
 	r.Use(middlewares.LoadSession())
+	r.Use(middlewares.RequireTwoFactor())
 
 	r.GET("/", home_api.IndexAction)
 	r.GET("/terms", terms_api.IndexAction)
@@ -61,6 +63,8 @@ func PublicRoutes(r *gin.Engine) {
 	r.GET("/login", auth_api.ShowLoginAction)
 	r.POST("/login", middlewares.LimitAuthPage(), auth_api.LoginAction)
 	r.POST("/logout", auth_api.LogoutAction)
+
+	twofa_api.WebRoutes(r)
 
 	orgs_api.WebRoutes(r)
 	admin_api.Routes(r)

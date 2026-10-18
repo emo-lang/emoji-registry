@@ -86,6 +86,9 @@ func TestSignupFormRejectsDuplicatesAndNormalizesEmail(t *testing.T) {
 	if resp.Code != http.StatusFound {
 		t.Fatalf("signup: expected 302, got %d: %s", resp.Code, resp.Body.String())
 	}
+	if loc := resp.Header().Get("Location"); loc != "/account/2fa/setup" {
+		t.Fatalf("signup: expected redirect to 2FA enrollment, got %q", loc)
+	}
 
 	resp = postForm(t, r, "/signup", url.Values{
 		"username": {"bob"},
@@ -112,5 +115,8 @@ func TestSignupFormRejectsDuplicatesAndNormalizesEmail(t *testing.T) {
 	})
 	if resp.Code != http.StatusFound {
 		t.Fatalf("login: expected 302, got %d: %s", resp.Code, resp.Body.String())
+	}
+	if loc := resp.Header().Get("Location"); loc != "/account/2fa/setup" {
+		t.Fatalf("login: expected redirect to 2FA enrollment, got %q", loc)
 	}
 }

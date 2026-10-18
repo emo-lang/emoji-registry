@@ -31,6 +31,11 @@ func AccountAuth() gin.HandlerFunc {
 			return
 		}
 
+		if user.TOTPEnabled {
+			abortUnauthorizedCode(c, "totp_required", "two-factor authentication is enabled for this account; create an API token from the web UI")
+			return
+		}
+
 		c.Set("current_user", user)
 		c.Next()
 	}

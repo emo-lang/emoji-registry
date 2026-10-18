@@ -44,12 +44,17 @@ func SignupAction(c *gin.Context) {
 		return
 	}
 
-	if !signIn(c, user) {
+	if _, err := accounts.EnsureTOTPSecret(user); err != nil {
+		render.Error(c, err)
+		return
+	}
+
+	if !signInPending(c, user) {
 		render.ErrorMessage(c, "failed to create session")
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, "/account/2fa/setup")
 }
 
 // ShowLoginAction renders the login form.
@@ -76,12 +81,23 @@ func LoginAction(c *gin.Context) {
 		return
 	}
 
-	if !signIn(c, user) {
+	if !user.TOTPEnabled {
+		if _, err := accounts.EnsureTOTPSecret(user); err != nil {
+			render.Error(c, err)
+			return
+		}
+	}
+
+	if !signInPending(c, user) {
 		render.ErrorMessage(c, "failed to create session")
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/")
+	target := "/account/2fa/setup"
+	if user.TOTPEnabled {
+		target = "/login/2fa"
+	}
+	c.Redirect(http.StatusFound, target)
 }
 
 // LogoutAction destroys the current session and clears the cookie.
@@ -94,12 +110,12 @@ func LogoutAction(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/")
 }
 
-func signIn(c *gin.Context, user *models.User) bool {
-	session, err := middlewares.CreateSession(user)
+func signInPending(c *gin.Context, user *models.User) bool {
+	session, err := middlewares.CreatePendingSession(user)
 	if err != nil {
 		return false
 	}
 
-	c.SetCookie(middlewares.SessionCookie, session.Token, int(middlewares.SessionTTL.Seconds()), "/", "", false, true)
+	middlewares.SetSessionCookie(c, session)
 	return true
 }

@@ -194,6 +194,7 @@ templ Base(title string, username string, admin bool, opts ...BaseOptions) {
 						<a class="nav-user" href={ templ.SafeURL("/u/" + username) }>{ username }</a>
 						<a href="/orgs">Orgs</a>
 						<a href="/tokens">Tokens</a>
+					<a href="/account/2fa">Security</a>
 						if admin {
 							<a href="/admin">Admin</a>
 						}
